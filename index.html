@@ -1,0 +1,2035 @@
+<title>Keep Calm and Stay Human</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: a 1920x1080 stage scaled to the window. Navy "screen" slides alternate with cool "paper" slides;
+   a yellow highlighter is the one human mark. Machine voice = mono labels, human voice = serif display. */
+:root{
+  --ink:#121829; --ink-2:#1B2238; --ink-line:#2B3452;
+  --paper:#EDEFF3; --paper-2:#DCE0E8;
+  --sun:#F3C33C;
+  --mist:#9AA3BD; --slate:#525A71;
+  --f-display:'Instrument Serif','Iowan Old Style',Georgia,serif;
+  --f-body:'Hanken Grotesk','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--ink);color:var(--paper);font-family:var(--f-body);overflow:hidden;padding-inline:16px;box-sizing:border-box;display:flex;flex-direction:column}
+.viewport{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding-block:12px}
+.frame{position:relative;flex:none;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px var(--ink-line)}
+.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;cursor:pointer;user-select:none}
+:fullscreen body{padding-inline:0}
+:fullscreen .frame{border-radius:0;box-shadow:none}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .45s ease-out,visibility 0s linear .45s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .45s ease-out;z-index:2}
+.dark{background:var(--ink);color:var(--paper)}
+.light{background:var(--paper);color:var(--ink)}
+.accent{background:var(--sun);color:var(--ink)}
+.slide>*{position:absolute}
+.slide .notes{display:none}
+
+.eyebrow{left:128px;top:104px;font:500 26px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;display:flex;gap:18px;align-items:center}
+.eyebrow::before{content:"";width:14px;height:14px;background:var(--sun);flex:none}
+.dark .eyebrow{color:var(--mist)}
+.light .eyebrow,.accent .eyebrow{color:var(--slate)}
+.accent .eyebrow{color:var(--ink)}
+.accent .eyebrow::before{background:var(--ink)}
+.folio{right:128px;bottom:72px;font:400 24px/1 var(--f-mono);letter-spacing:.1em}
+.dark .folio{color:var(--mist)} .light .folio{color:var(--slate)} .accent .folio{color:var(--ink)}
+
+.d0{font:400 300px/.9 var(--f-display);letter-spacing:-.02em}
+.d1{font:400 180px/.95 var(--f-display);letter-spacing:-.015em}
+.d2{font:400 120px/1 var(--f-display);letter-spacing:-.01em;text-wrap:balance}
+.d3{font:400 84px/1.05 var(--f-display);text-wrap:balance}
+.d4{font:400 64px/1.08 var(--f-display);text-wrap:balance}
+.t1{font:400 44px/1.3 var(--f-body)}
+.t2{font:500 30px/1.35 var(--f-body)}
+.mono{font:500 26px/1.2 var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.muted{color:var(--mist)} .light .muted{color:var(--slate)}
+.sun{color:var(--sun)}
+em{font-style:italic}
+.hl{background-image:linear-gradient(var(--sun),var(--sun));background-repeat:no-repeat;background-size:100% 40%;background-position:0 86%;padding-inline:.06em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* image upload slots */
+.slot{display:block;border:3px dashed var(--sun);background:var(--ink-2);color:var(--mist);font:inherit;padding:0;cursor:copy;overflow:hidden;border-radius:4px}
+.light .slot{background:var(--paper-2);color:var(--slate);border-color:#B98A0A}
+.slot img{width:100%;height:100%;display:block}
+.slot.filled{border:none}
+.slot-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;padding:24px;box-sizing:border-box;text-align:center}
+.slot-empty svg{width:56px;height:56px}
+.slot-label{font:500 28px/1.3 var(--f-body)}
+.slot-hint{font:400 22px/1.2 var(--f-mono);letter-spacing:.06em}
+.slot-x{position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(18,24,41,.75);color:#EDEFF3;font:500 26px/1 var(--f-body);cursor:pointer;display:none}
+.slot-wrap{position:absolute}
+.slot-wrap .slot{width:100%;height:100%}
+.slot-wrap.filled .slot-x{display:block}
+.slot:focus-visible,.slot-x:focus-visible,.bar button:focus-visible,.vcell:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+
+/* cover */
+.s-cover{background-image:radial-gradient(var(--ink-line) 1.6px,transparent 1.8px);background-size:48px 48px;background-position:24px 24px}
+.s-cover .title{left:128px;top:270px}
+.s-cover .title .line{display:block}
+.s-cover .word{display:inline-block}
+.u{position:relative;display:inline-block}
+.u svg{position:absolute;left:-2%;bottom:-26px;width:104%;height:46px;overflow:visible}
+.s-cover .sub{left:128px;top:740px;width:1200px}
+.s-cover .byline{left:128px;bottom:110px;display:flex;gap:28px;align-items:baseline}
+
+/* intro */
+.s-intro .name{left:128px;top:220px}
+.s-intro .facts{left:128px;top:440px;width:820px;display:grid;gap:44px}
+.fact{display:grid;grid-template-columns:150px 1fr;align-items:baseline;gap:24px}
+.fact .mono{color:var(--slate)}
+.s-intro .slot-wrap{right:0;top:0;bottom:0;width:800px}
+.s-intro .slot{border-radius:0}
+
+/* chat */
+.s-chat .head{left:128px;top:170px}
+.s-chat .slot-wrap{left:128px;right:128px;top:330px;bottom:150px}
+
+/* 2006 */
+.s-2006 .year{left:118px;top:170px}
+.s-2006 .yr-note{left:128px;top:470px;width:640px}
+.tiles{left:900px;top:150px;width:892px;display:grid;grid-template-columns:repeat(2,1fr);gap:28px 40px}
+.tile{display:grid;gap:18px;position:relative}
+.tile .slot-wrap{position:relative;height:320px}
+.tile .slot-label{font-size:22px}
+.tile .slot-hint{font-size:18px}
+.tile .slot-empty svg{width:40px;height:40px}
+.tile figcaption{font:500 28px/1.25 var(--f-body)}
+
+/* twenty */
+.s-twenty .counter{left:118px;top:170px;font-variant-numeric:tabular-nums}
+.s-twenty .l1{left:128px;top:500px}
+.s-twenty .l2{left:128px;top:610px;width:700px}
+
+/* waves */
+.s-waves .head{left:128px;top:180px;width:1500px}
+.track{left:128px;top:640px;width:1664px;height:4px}
+.track .rail{position:absolute;inset:0;background:var(--ink-line)}
+.track .fill{position:absolute;inset:0;background:var(--paper);transform-origin:0 50%}
+.node{position:absolute;top:-14px;width:32px;height:32px;margin-left:-16px;border-radius:50%;background:var(--paper)}
+.node.ai{background:var(--sun);width:44px;height:44px;margin-left:-22px;top:-20px}
+.nlabel{position:absolute;bottom:52px;transform:translateX(-50%);white-space:nowrap}
+.s-waves .cap{left:128px;top:820px;width:1300px}
+
+/* A1 */
+.s-a1 .eyebrow{left:128px}
+.a1{left:128px;width:860px;top:200px;text-align:center;font:400 480px/1 var(--f-display)}
+.s-a1 .slot-wrap{right:128px;top:150px;width:740px;height:760px}
+.swap{position:relative;display:inline-block}
+.swap .eye{position:absolute;left:50%;top:0;transform:translateX(-50%)}
+.swap .hlbox{position:absolute;left:-10%;right:-10%;bottom:16%;height:34%;background:var(--sun);transform-origin:0 50%;z-index:-1}
+.a1 .A,.swap{z-index:1}
+.labs{left:128px;width:860px;top:790px;height:60px;text-align:center}
+.labs .mono{position:absolute;left:0;right:0;font-size:34px;color:var(--slate)}
+
+/* vibe */
+.s-vibe .head{left:128px;top:180px}
+.vscale{left:128px;right:128px;top:420px;height:500px;display:grid;grid-template-columns:repeat(10,1fr);gap:22px}
+.vcell{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:16px;background:none;border:none;padding:0;cursor:pointer;color:inherit;font:inherit}
+.vbar{height:6px;width:100%;min-height:6px;background:var(--ink-line);border-radius:3px 3px 0 0;transition:height .45s var(--ease),background .3s}
+.vcell.has .vbar{background:var(--sun)}
+.vcount{font:500 30px/1 var(--f-mono);color:var(--sun);text-align:center;min-height:30px}
+.vnum{font:400 64px/1 var(--f-display);text-align:center;border-top:2px solid var(--ink-line);padding-top:16px}
+.vends{left:128px;right:128px;top:936px;display:flex;justify-content:space-between}
+.vhint{left:128px;bottom:72px;font:400 22px/1 var(--f-mono);color:var(--mist);letter-spacing:.06em}
+.vreset{position:absolute;right:128px;top:116px;font:500 22px/1 var(--f-mono);letter-spacing:.08em;color:var(--mist);background:none;border:2px solid var(--ink-line);border-radius:30px;padding:10px 20px;cursor:pointer}
+
+/* roadmap */
+.s-road .head{left:128px;top:170px}
+.road{left:128px;top:400px;width:1664px;height:500px}
+.road .line{position:absolute;left:0;right:0;top:22px;height:3px;background:var(--ink);transform-origin:0 50%}
+.stops{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+.stop{display:grid;align-content:start;gap:22px}
+.stop .dot{width:48px;height:48px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:500 24px/1 var(--f-mono)}
+.stop .d4{margin-top:10px}
+.stop .t2{color:var(--slate)}
+.chips{display:grid;gap:12px;justify-items:start}
+.chip{font:500 32px/1 var(--f-body);padding:12px 18px 14px;background:var(--sun);color:var(--ink);border-radius:4px}
+
+/* divider */
+.s-div .big{left:128px;top:380px}
+.s-div .q{left:128px;top:600px}
+
+/* reel */
+.s-reel .reel{left:128px;top:250px;width:1340px;height:640px}
+.reel-item{position:absolute;left:0;top:0;width:100%;display:grid;grid-template-columns:720px 560px;gap:60px;align-items:center}
+.reel-item .slot-wrap{position:relative;height:620px}
+.reel-item .mono{color:var(--sun);margin-bottom:28px;display:block}
+.trk{right:128px;top:330px;width:300px;display:grid;gap:30px}
+.trk-row{position:relative;font:500 26px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding-left:28px;color:var(--paper)}
+.trk-row i{position:absolute;left:0;top:50%;width:14px;height:14px;margin-top:-7px;background:var(--sun);transform-origin:0 50%}
+.trk::before{content:"";position:absolute;left:-40px;top:-10px;bottom:-10px;width:2px;background:var(--ink-line)}
+
+/* century */
+.s-century .h{left:128px;top:180px;width:1244px;font-size:100px}
+.s-century .slot-wrap{right:128px;top:150px;width:360px;height:780px}
+.bars{left:128px;top:470px;width:1244px;height:280px}
+.bar1{position:absolute;bottom:0;left:0;width:10px;height:100%;background:var(--ink);transform-origin:50% 100%}
+.bracket{left:467px;top:775px;width:566px;height:3px;background:var(--ink);transform-origin:50% 50%}
+.century-lab{left:128px;right:548px;top:810px;height:40px}
+.century-lab .mono{position:absolute;left:0;right:0;color:var(--slate)}
+.century-lab .b{text-align:center;color:var(--ink)}
+
+/* geniuses */
+.s-gen .head{left:128px;top:150px}
+.dots{left:144px;top:330px;display:grid;grid-template-columns:repeat(48,14px);gap:20px}
+.dotc{width:14px;height:14px;border-radius:50%;background:var(--ink-line)}
+.s-gen .cap{left:128px;top:850px;display:grid;gap:10px}
+
+/* sword */
+.s-sword .head{left:128px;top:170px}
+.tbl{left:128px;top:330px;width:1664px}
+.trow{display:grid;grid-template-columns:480px 1fr 1fr;gap:48px;align-items:baseline;padding-block:30px;border-top:2px solid var(--paper-2)}
+.trow.th{border-top:none;padding-block:0 18px}
+.trow.th .mono{color:var(--slate)}
+.trow.th .peril{display:flex;align-items:center;gap:14px}
+.trow.th .peril::before{content:"";width:14px;height:14px;background:var(--ink)}
+.qm{font:400 96px/.8 var(--f-display)}
+
+/* mirror */
+.s-mirror .head{left:0;right:0;top:160px;text-align:center}
+.s-mirror .axis{left:959px;top:340px;width:2px;height:560px;background:var(--ink-line);transform-origin:50% 0}
+.mrow{left:0;right:0;height:180px;display:grid;grid-template-columns:1fr 1fr;column-gap:120px;align-items:center}
+.mrow .L{text-align:right;padding-left:128px}
+.mrow .R{text-align:left;padding-right:128px}
+.mrow .lab{display:block;margin-bottom:12px}
+.mrow .L .lab{color:var(--mist)} .mrow .R .lab{color:var(--sun)}
+.m1{top:390px} .m2{top:660px}
+
+/* ---------- presenter bar + notes ---------- */
+.bar{flex:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:10px calc(12px + env(safe-area-inset-bottom,0px));font:400 14px/1.2 var(--f-mono);color:var(--mist)}
+.bar button{font:500 13px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--paper);background:var(--ink-2);border:1px solid var(--ink-line);border-radius:20px;padding:9px 14px;cursor:pointer}
+.bar button[aria-pressed="true"]{background:var(--sun);color:var(--ink);border-color:var(--sun)}
+.bar .pos{margin-inline:8px auto;font-variant-numeric:tabular-nums;min-width:0}
+.prog{flex:1 1 140px;max-width:320px;height:3px;background:var(--ink-line);border-radius:2px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--sun);width:0;transition:width .35s var(--ease)}
+.notes-panel{flex:none;max-height:32vh;overflow:auto;background:var(--ink-2);border:1px solid var(--ink-line);border-radius:6px;padding:16px 20px;margin-top:4px;font:400 17px/1.55 var(--f-body);color:var(--paper)}
+.notes-panel h2{margin:0 0 8px;font:500 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--sun)}
+.notes-panel p{margin:0 0 .7em;max-width:75ch}
+.kbd{font:400 12px/1.5 var(--f-mono);color:var(--mist);margin-top:8px}
+@media (max-width:560px){.bar .hide-sm{display:none}}
+@media (prefers-reduced-motion:reduce){.slide,.slide.active,.vbar,.prog i{transition:none}}
+
+/* ---------- flow slides (Perils onward) ---------- */
+.slide.flow{display:flex;flex-direction:column;padding:104px 128px 132px;box-sizing:border-box}
+.slide.flow>*{position:relative}
+.slide.flow>.eyebrow{left:auto;top:auto;flex:none}
+.slide.flow>.folio,.slide.flow>.timer,.slide.flow>.bigletter{position:absolute}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:40px}
+.body.center{align-items:center;text-align:center}
+.body.tight{gap:24px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:center}
+.cols.wr{grid-template-columns:560px 1fr;gap:72px}
+.cols.wl{grid-template-columns:1fr 620px}
+.cols>*{min-width:0}
+.stack-v{display:grid;gap:24px;justify-items:start;align-content:center}
+.row{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+.stat{font:400 240px/.88 var(--f-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.qt{font:italic 400 84px/1.12 var(--f-display);text-wrap:balance;max-width:1560px;margin:0}
+.qt.sm{font-size:60px;line-height:1.18}
+.chap{font:400 240px/.9 var(--f-display);letter-spacing:-.015em}
+.chip2{font:500 36px/1 var(--f-body);padding:16px 26px 18px;border-radius:999px;border:2px solid currentColor;white-space:nowrap}
+.dark .chip2.on{background:var(--sun);color:var(--ink);border-color:var(--sun)}
+.light .chip2.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.strk{position:relative;display:inline-block}
+.sline{position:absolute;left:-2%;right:-2%;top:54%;height:7px;background:var(--sun);transform-origin:0 50%}
+.light .sline{background:var(--ink)}
+.dark .hl{background-size:100% 12%;background-position:0 98%}
+.stack{position:relative}
+.stack>*,.flow .stack>.slot-wrap{position:absolute;inset:0}
+.stack>.stamp{inset:auto;top:28px;left:28px;z-index:3}
+.stamp{font:400 64px/1 var(--f-display);padding:12px 28px 16px;border-radius:4px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.stamp.real{background:var(--paper);color:var(--ink)}
+.stamp.ai{background:var(--sun);color:var(--ink)}
+.flow .slot-wrap{position:relative}
+.bigletter{right:110px;bottom:-130px;font:400 820px/1 var(--f-display);color:var(--sun);pointer-events:none}
+.s-chal .body{max-width:1150px}
+.waffle{display:grid;grid-template-columns:repeat(10,1fr);gap:10px;width:520px}
+.wc{aspect-ratio:1;border-radius:3px;background:var(--ink-line)}
+.light .wc{background:var(--paper-2)}
+.wc.on{background:var(--sun)}
+.light .wc.on{background:var(--ink)}
+.wave{display:flex;align-items:center;gap:8px;height:200px;width:100%}
+.wave span{flex:1;background:var(--sun);border-radius:4px;min-width:6px}
+.timer{top:92px;right:128px;font:500 26px/1 var(--f-mono);letter-spacing:.06em;padding:14px 24px;border-radius:40px;border:2px solid currentColor;background:none;color:inherit;cursor:pointer;font-variant-numeric:tabular-nums}
+.timer.run,.timer.done{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.dark .timer.run,.dark .timer.done{background:var(--sun);color:var(--ink);border-color:var(--sun)}
+.timer:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+.x{display:inline-block;overflow:hidden;white-space:pre;vertical-align:bottom}
+.numrow{display:grid;grid-template-columns:96px 1fr;gap:32px;align-items:start}
+.numrow .n{width:72px;height:72px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:500 28px/1 var(--f-mono);margin-top:4px}
+.dark .numrow .n{background:var(--sun);color:var(--ink)}
+.numrow .t2{color:var(--slate);margin-top:6px}
+.dark .numrow .t2{color:var(--mist)}
+.namecard{border-top:3px solid var(--ink);padding-top:24px;display:grid;gap:10px}
+.dark .namecard{border-color:var(--paper)}
+.ppl{display:flex;gap:36px}
+.ppl svg{width:150px;height:240px;overflow:visible}
+.ppl .on{fill:var(--ink)}
+.ppl .off{fill:none;stroke:var(--ink);stroke-width:5}
+.trio{display:flex;gap:16px;flex:none}
+.cdot{width:64px;height:64px;border-radius:50%;border:5px solid var(--ink);box-sizing:border-box}
+.cdot.on{background:var(--ink)}
+.statrow{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
+.mrow2{display:grid;grid-template-columns:300px 1400px;align-items:center;gap:32px}
+.mbar{height:110px;display:flex;align-items:center;justify-content:flex-end;padding-right:24px;box-sizing:border-box;font:400 60px/1 var(--f-display);color:var(--ink);transform-origin:0 50%}
+.mbar.a{width:210px;background:var(--paper)}
+.mbar.b{width:1400px;background:var(--sun)}
+.lane{display:grid;grid-template-columns:280px 1fr;gap:32px;align-items:center}
+.track2{display:flex;height:100px}
+.seg{display:flex;align-items:center;padding:0 26px;font:500 30px/1.2 var(--f-body);box-sizing:border-box;transform-origin:0 50%}
+.seg.a{flex:0 0 45%;background:var(--ink);color:var(--paper)}
+.seg.b{flex:1;background:var(--paper-2);color:var(--ink);border-left:6px solid var(--paper)}
+.seg.c{flex:1;background:var(--paper-2);color:var(--ink)}
+.vchart{display:flex;gap:120px;align-items:flex-end;padding-left:20px}
+.vcol{display:flex;flex-direction:column;align-items:center;gap:18px;width:280px}
+.vcol .val{font:400 96px/1 var(--f-display)}
+.vcol .bar{width:220px;transform-origin:50% 100%}
+.vcol .lab{border-top:3px solid var(--ink-line);width:100%;text-align:center;padding-top:18px}
+.stairs{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;align-items:end;width:100%}
+.stp{display:flex;flex-direction:column;gap:16px}
+.stp .blk{background:var(--ink);transform-origin:50% 100%}
+.board{display:grid;grid-template-columns:repeat(3,140px);grid-template-rows:repeat(4,140px);position:relative;border:3px solid var(--ink);width:fit-content}
+.sq{background:var(--paper)} .sq.k{background:var(--paper-2)}
+.knight{position:absolute;left:0;top:420px;width:140px;height:140px;display:grid;place-items:center;font:110px/1 'Segoe UI Symbol','Apple Symbols','DejaVu Sans','Noto Sans Symbols 2',serif;color:var(--ink)}
+.tgt{position:absolute;left:140px;top:140px;width:140px;height:140px;box-sizing:border-box;border:6px dashed var(--ink)}
+.fbox{border:3px solid var(--ink);padding:26px 34px 30px;font:400 60px/1.1 var(--f-display)}
+.farrow{font:400 80px/1 var(--f-display)}
+.acro{display:grid;grid-template-columns:140px 1fr;align-items:baseline;gap:36px}
+.acro .d2{line-height:1}
+.meet{display:flex;gap:28px;align-items:center}
+.pc{width:150px;height:150px;border-radius:50%;border:6px solid var(--paper);box-sizing:border-box}
+.pc.s{border-color:var(--sun);background:var(--sun)}
+.vtrack{position:relative;height:300px;display:flex;align-items:flex-end}
+.vghost{position:absolute;left:0;right:0;bottom:0;border:3px dashed var(--mist);border-bottom:none;border-radius:3px 3px 0 0;box-sizing:border-box;transition:height .45s var(--ease)}
+.jump select{font:500 13px/1 var(--f-mono);letter-spacing:.04em;color:var(--paper);background:var(--ink-2);border:1px solid var(--ink-line);border-radius:20px;padding:8px 12px;max-width:44vw}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.s-reel .reel-item .d2{font-size:96px}
+.flow .stack.ovl{display:grid}
+.flow .stack.ovl>*{position:relative;inset:auto;grid-area:1/1}
+.goto input{width:92px;font:500 13px/1 var(--f-mono);color:var(--paper);background:var(--ink-2);border:1px solid var(--ink-line);border-radius:20px;padding:8px 12px;font-variant-numeric:tabular-nums}
+.goto input::placeholder{color:var(--mist)}
+.goto input:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+.rtimer{position:relative;width:440px;height:440px;padding:0;border:none;background:none;cursor:pointer;color:var(--ink);display:grid;place-items:center;font:inherit}
+.rtimer svg{position:absolute;inset:0;width:100%;height:100%}
+.rt-track{fill:none;stroke:var(--paper-2);stroke-width:22}
+.rt-arc{fill:none;stroke:var(--ink);stroke-width:22;stroke-linecap:round;transition:stroke .3s}
+.rtimer.run .rt-arc{stroke:#B98A0A}
+.rtimer.done .rt-arc{stroke:var(--sun)}
+.rt-time{position:relative;font:400 150px/1 var(--f-display);font-variant-numeric:tabular-nums;margin-top:-20px}
+.rt-hint{position:absolute;bottom:118px;font:500 22px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.rtimer:focus-visible{outline:4px solid var(--sun);outline-offset:6px;border-radius:50%}
+</style>
+
+<div class="viewport" id="viewport">
+  <div class="frame" id="frame">
+    <div class="stage" id="stage" role="region" aria-label="Presentation slides" aria-live="polite">
+
+<!-- 1 COVER -->
+<section class="slide dark s-cover" data-build="cover" data-section="Introduction" data-nofolio>
+  <div class="eyebrow">Ignition 2026 · Workshop</div>
+  <h1 class="title d1" style="margin:0"><span class="line"><span class="word">Keep</span> <span class="word">Calm</span></span><span class="line"><span class="word">and</span> <span class="word">Stay</span> <span class="word u"><em class="sun">Human.</em><svg viewBox="0 0 600 46" aria-hidden="true"><path d="M6 32 C 140 10, 320 40, 594 14" fill="none" stroke="#F3C33C" stroke-width="9" stroke-linecap="round"/></svg></span></span></h1>
+  <p class="sub t1 muted" style="margin:0">Living in the Age of Artificial Intelligence</p>
+  <div class="byline"><span class="t2">Godwin Law</span></div>
+  <aside class="notes"><p>(Title on screen while everyone settles in.)</p><p>Keep Calm and Stay Human: Living in the Age of Artificial Intelligence.</p></aside>
+</section>
+
+<!-- 2 INTRO -->
+<section class="slide light s-intro" data-build="intro">
+  <div class="eyebrow">Hello</div>
+  <h2 class="name d2" style="margin:0">I’m Godwin Law.</h2>
+  <div class="facts">
+    <div class="fact"><span class="mono">Now</span><span class="t1">Youth minister, middle school</span></div>
+    <div class="fact"><span class="mono">Roots</span><span class="t1">Hong Kong → UC Berkeley EECS</span></div>
+    <div class="fact"><span class="mono">Work</span><span class="t1">10 years engineering at Salesforce</span></div>
+  </div>
+  <div class="slot-wrap" data-slot-id="family" data-fit="cover">
+    <button class="slot no-adv" type="button" aria-label="Upload family photo"><span class="slot-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span class="slot-label">Upload: family photo<br>Andrea &amp; Aiden</span><span class="slot-hint">Click to choose an image</span></span><img alt="Family photo: Andrea and Aiden" hidden></button>
+    <button class="slot-x no-adv" type="button" aria-label="Remove image">×</button>
+  </div>
+  <div class="folio">02</div>
+  <aside class="notes"><p>Hello, I’m Godwin Law.</p><p>Currently, youth minister for middle schoolers.</p><p>Family: picture of Andrea and Aiden.</p><p>Grew up in HK, studied EECS at UC Berkeley.</p><p>Software engineer at Salesforce for past 10 years.</p></aside>
+</section>
+
+<!-- 3 CHAT -->
+<section class="slide dark s-chat" data-build="chat">
+  <div class="eyebrow">What I build</div>
+  <h2 class="head d3" style="margin:0">Enhanced Chat, <em class="muted">live on customer sites</em></h2>
+  <div class="slot-wrap" data-slot-id="chat" data-fit="contain">
+    <button class="slot no-adv" type="button" aria-label="Upload Enhanced Chat screenshot"><span class="slot-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span class="slot-label">Upload: screenshots of Enhanced Chat on customer sites</span><span class="slot-hint">Click to choose an image</span></span><img alt="Enhanced Chat on a customer website" hidden></button>
+    <button class="slot-x no-adv" type="button" aria-label="Remove image">×</button>
+  </div>
+  <div class="folio">03</div>
+  <aside class="notes"><p>(Share screenshots of Enhanced Chat on customer sites.)</p></aside>
+</section>
+
+<!-- 4 2006 -->
+<section class="slide dark s-2006" data-build="y2006">
+  <div class="eyebrow">The year I started middle school</div>
+  <div class="year d0 sun">2006</div>
+  <p class="yr-note t2 muted" style="margin:0">The internet when I was a teenager</p>
+  <div class="tiles">
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="t-phone" data-fit="cover"><button class="slot no-adv" type="button" aria-label="Upload Sony Ericsson phone image"><span class="slot-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span class="slot-label">Upload</span></span><img alt="Sony Ericsson phone" hidden></button><button class="slot-x no-adv" type="button" aria-label="Remove image">×</button></div><figcaption>Sony Ericsson phone</figcaption></figure>
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="t-fb" data-fit="cover"><button class="slot no-adv" type="button" aria-label="Upload old Facebook image"><span class="slot-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span class="slot-label">Upload</span></span><img alt="Old Facebook" hidden></button><button class="slot-x no-adv" type="button" aria-label="Remove image">×</button></div><figcaption>Old Facebook</figcaption></figure>
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="t-yt" data-fit="cover"><button class="slot no-adv" type="button" aria-label="Upload early YouTube image"><span class="slot-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span class="slot-label">Upload</span></span><img alt="Early YouTube" hidden></button><button class="slot-x no-adv" type="button" aria-label="Remove image">×</button></div><figcaption>YouTube</figcaption></figure>
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="t-ts" data-fit="cover"><button class="slot no-adv" type="button" aria-label="Upload Taylor Swift debut album image"><span class="slot-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg><span class="slot-label">Upload</span></span><img alt="Taylor Swift's first album" hidden></button><button class="slot-x no-adv" type="button" aria-label="Remove image">×</button></div><figcaption>Taylor Swift’s first album</figcaption></figure>
+  </div>
+  <div class="folio">04</div>
+  <aside class="notes"><p>Not sure how old you guys think I am or if you did the math, but I entered middle school in 2006 exactly twenty years ago and this was the state of the internet when I was a teenager.</p><p>(Click.) Sony Ericsson phone. Old Facebook. YouTube. Taylor Swift released her first album.</p><p>(CDs were removed from the grid; mention them aloud if you like.)</p></aside>
+</section>
+
+<!-- 5 TWENTY -->
+<section class="slide dark s-twenty" data-build="twenty">
+  <div class="eyebrow">Twenty years later</div>
+  <div class="counter d0 sun">2006</div>
+  <div class="tiles">
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="n-phone" data-fit="cover" data-label="Upload: a phone today"></div><figcaption>Phones today</figcaption></figure>
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="n-fb" data-fit="cover" data-label="Upload: Facebook today"></div><figcaption>Facebook today</figcaption></figure>
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="n-yt" data-fit="cover" data-label="Upload: YouTube today"></div><figcaption>YouTube today</figcaption></figure>
+    <figure class="tile" style="margin:0"><div class="slot-wrap" data-slot-id="n-ts" data-fit="cover" data-label="Upload: Taylor Swift today"></div><figcaption>Taylor Swift today</figcaption></figure>
+  </div>
+  <div class="l1 d3">Twenty years.</div>
+  <div class="l2 d3"><span class="hl" id="hl20">Might as well be a hundred.</span></div>
+  <div class="folio">05</div>
+  <aside class="notes"><p>As you can tell, things have changed alot. (The same four things, today.)</p><p>(Click.) 20 years might as well have been a hundred years to you guys.</p></aside>
+</section>
+
+<!-- 6 WAVES -->
+<section class="slide dark s-waves" data-build="waves">
+  <div class="eyebrow">Three waves I’ve watched up close</div>
+  <h2 class="head d3" style="margin:0">The world is racing ahead at dizzying speed</h2>
+  <div class="track">
+    <div class="rail"></div><div class="fill"></div>
+    <div class="node" style="left:8%"><span class="nlabel d4">The internet</span></div>
+    <div class="node" style="left:58%"><span class="nlabel d4">Social media</span></div>
+    <div class="node ai" style="left:88%"><span class="nlabel d2 sun" style="bottom:60px">AI</span></div>
+  </div>
+  <p class="cap t1 muted" style="margin:0">My hope: a little clarity, a little perspective.</p>
+  <div class="folio">06</div>
+  <aside class="notes"><p>I don’t know how you guys feel finding yourself in the midst of all this rapid technological change.</p><p>(Click.) Even having spent the past decade working in tech, having witnessed first the internet, then social media, and now AI, I find myself disoriented sometimes by the dizzying speeds our world is racing ahead.</p><p>(Click.) My hope is that in the midst of all this swirling change, this talk will provide a little bit of clarity but also some perspective about how to navigate life and stay human.</p></aside>
+</section>
+
+<!-- 7 A1 -->
+<section class="slide light s-a1" data-build="a1">
+  <div class="eyebrow">Today’s topic</div>
+  <div class="a1"><span class="A">A</span><span class="swap"><span class="one">1</span><span class="eye">I</span><span class="hlbox"></span></span></div>
+  <div class="slot-wrap" data-slot-id="a1-sauce" data-fit="contain" data-label="Upload: a bottle of A1 steak sauce"></div>
+  <div class="labs"><span class="mono lab1">steak sauce</span><span class="mono lab2" style="color:var(--ink)">artificial intelligence</span></div>
+  <div class="folio">07</div>
+  <aside class="notes"><p>So today I’m gonna be focusing on the topic that’s been dominating a lot of the headlines: A1 steak sauce. (No jk although the two have been confused)</p><p>(Click.) I’m talking about AI of course - artificial intelligence.</p></aside>
+</section>
+
+<!-- 8 VIBE -->
+<section class="slide dark s-vibe" data-build="vibe" data-nofolio>
+  <div class="eyebrow">Vibe check</div>
+  <button class="vreset no-adv" type="button" data-key="before">Clear tally</button>
+  <h2 class="head d3" style="margin:0">How do you feel about AI?</h2>
+  <div class="vscale" data-key="before"></div>
+  <div class="vends t2 muted"><span>1 · Worried</span><span>Excited · 10</span></div>
+  <div class="vhint">Tally hands: click a number, or press keys 1–9 and 0 for 10. Shift-click to subtract.</div>
+  <aside class="notes"><p>Vibecheck: how do you feel about AI? Scale from 1-10.</p><p>Some remarks. Would be interesting to compare before and after.</p><p>(Tally the room by clicking each number or pressing 1–9, 0 for 10. The tally stays on this browser so you can compare at the end.)</p></aside>
+</section>
+
+<!-- 9 ROADMAP -->
+<section class="slide light s-road" data-build="road">
+  <div class="eyebrow">Roadmap</div>
+  <h2 class="head d3" style="margin:0">Where we’re headed</h2>
+  <div class="road">
+    <div class="line"></div>
+    <div class="stops">
+      <div class="stop"><span class="dot">1</span><span class="d4">Promises</span><span class="t2">What’s all the hype about?</span></div>
+      <div class="stop"><span class="dot">2</span><span class="d4">Perils</span><div class="chips"><span class="chip">Reality</span><span class="chip">Relationships</span><span class="chip">Resilience</span></div></div>
+      <div class="stop"><span class="dot">3</span><span class="d4">What AI reveals</span><span class="t2">What it means to be human</span></div>
+      <div class="stop"><span class="dot">4</span><span class="d4">What we can do</span><span class="t2">How to stay human</span></div>
+    </div>
+  </div>
+  <div class="folio">09</div>
+  <aside class="notes"><p>Anyway, I have a lot I want to cover and not a lot of time, but before I dive in, here’s a roadmap for our session.</p><p>Promises of AI: What’s all the hype about? Why are people pouring so much money into AI?</p><p>(Click.) Perils of AI - What’s the dark side of AI that not as many people talk about? In particular, I’ll be looking at AI’s impact on Reality, Relationships, Resilience.</p><p>What AI shows us about human nature. Before we can answer how to stay human, we need to understand what it means to be human.</p><p>What can we do about it?</p></aside>
+</section>
+
+<!-- 10 DIVIDER -->
+<section class="slide accent s-div" data-build="divider" data-section="Promises of AI">
+  <div class="eyebrow">Part one</div>
+  <h2 class="big d1" style="margin:0">Promises of AI</h2>
+  <p class="q t1" style="margin:0">What’s all the hype about?</p>
+  <div class="folio">10</div>
+  <aside class="notes"><p>Let’s dive in.</p><p>When you guys read the news today, it would seem that the advancement of AI has indeed has indeed been very promising.</p></aside>
+</section>
+
+<!-- 11 REEL -->
+<section class="slide dark s-reel" data-build="reel">
+  <div class="eyebrow">You might have heard how AI…</div>
+  <div class="reel">
+    <div class="reel-item"><div><span class="mono">Mathematics</span><span class="d2">Solved a Millennium Prize problem</span></div><div class="slot-wrap" data-slot-id="br-mathematics" data-fit="cover" data-label="Upload: image of the Millennium Prize problem"></div></div>
+    <div class="reel-item"><div><span class="mono">Biology</span><span class="d2">AlphaGenome: breakthroughs in understanding the body</span></div><div class="slot-wrap" data-slot-id="br-biology" data-fit="cover" data-label="Upload: image of AlphaGenome"></div></div>
+    <div class="reel-item"><div><span class="mono">Medicine</span><span class="d2">Faster development of new medicine</span></div><div class="slot-wrap" data-slot-id="br-medicine" data-fit="cover" data-label="Upload: image of AI-designed medicine"></div></div>
+    <div class="reel-item"><div><span class="mono">History</span><span class="d2">Decoding ancient scrolls</span></div><div class="slot-wrap" data-slot-id="br-history" data-fit="cover" data-label="Upload: image of the decoded ancient scrolls"></div></div>
+    <div class="reel-item"><div><span class="mono">Language</span><span class="d2">Learning to speak dolphin</span></div><div class="slot-wrap" data-slot-id="br-language" data-fit="cover" data-label="Upload: image of dolphins and AI"></div></div>
+  </div>
+  <div class="trk">
+    <div class="trk-row"><i></i>Mathematics</div>
+    <div class="trk-row"><i></i>Biology</div>
+    <div class="trk-row"><i></i>Medicine</div>
+    <div class="trk-row"><i></i>History</div>
+    <div class="trk-row"><i></i>Language</div>
+  </div>
+  <div class="folio">11</div>
+  <aside class="notes"><p>You guys might have heard how AI…</p><p>recently managed to solve a Millenium Prize problem - one of the hardest problems in maths.</p><p>(Click.) how AlphaGenome enabled breakthroughs in understanding the human body</p><p>(Click.) how AI has accelerated the development of new medicine</p><p>(Click.) how AI has enabled us to decode ancient scrolls</p><p>(Click.) or even how AI is teaching us how to speak in dolphin language</p></aside>
+</section>
+
+<!-- 12 CENTURY -->
+<section class="slide light s-century" data-build="century">
+  <div class="eyebrow">Dario Amodei · CEO of Anthropic</div>
+  <h2 class="h h-a d2" style="margin:0">100 years of progress…</h2>
+  <h2 class="h h-b d2" style="margin:0">…<span class="hl">compressed into a decade</span></h2>
+  <div class="slot-wrap" data-slot-id="dario" data-fit="cover" data-label="Upload: portrait of Dario Amodei"></div>
+  <div class="bars" id="bars"></div>
+  <div class="bracket"></div>
+  <div class="century-lab"><span class="mono a">1 bar = 1 year of progress</span><span class="mono b">10 years</span></div>
+  <div class="folio">12</div>
+  <aside class="notes"><p>In an essay written by Dario Amodei, the CEO of Anthropic, the company behind Claude, he envisions a bright future for humanity where 100 years of technological progress</p><p>(Click.) would be compressed into a decade</p></aside>
+</section>
+
+<!-- 13 GENIUSES -->
+<section class="slide dark s-gen" data-build="gen">
+  <div class="eyebrow">The vision</div>
+  <h2 class="head d2" style="margin:0">A country of geniuses</h2>
+  <div class="dots" id="dots"></div>
+  <div class="cap"><span class="t1 c1">Solving humanity’s hardest problems.</span><span class="t1 muted c2">A rosy, utopian picture from Silicon Valley.</span></div>
+  <div class="folio">13</div>
+  <aside class="notes"><p>and that we would get countries of geniuses solving humanity’s hardest problems.</p><p>(Click.) Indeed, he and other Silicon Valley tech leaders have painted a very rosy picture of a utopian future that AI can bring about.</p></aside>
+</section>
+
+<!-- 14 SWORD -->
+<section class="slide light s-sword" data-build="sword">
+  <div class="eyebrow">But as it turns out</div>
+  <h2 class="head d3" style="margin:0">Every technology cuts both ways</h2>
+  <div class="tbl">
+    <div class="trow th"><span></span><span class="mono">Promise</span><span class="mono peril">Peril</span></div>
+    <div class="trow r1"><span class="d4">The internet</span><span class="t1">Exchange of ideas</span><span class="t1">Disinformation at global scale</span></div>
+    <div class="trow r2"><span class="d4">Social media</span><span class="t1">Connection across the world</span><span class="t1">Record anxiety and depression</span></div>
+    <div class="trow r3"><span class="d4"><span class="hl">AI</span></span><span class="qm">?</span><span class="qm">?</span></div>
+  </div>
+  <div class="folio">14</div>
+  <aside class="notes"><p>But as it turns out, AI, like many other kinds of technology before it, is a double-edged sword. The promise also comes with peril.</p><p>(Click.) The internet, while being a great platform for the exchange of ideas, has also enabled the spread of conspiracies and disinformation at a global scale.</p><p>(Click.) Social media, while useful for connecting people across the world, has also done untold damage to our generation’s mental health, causing record rates of anxiety and depression.</p><p>(Click.) It turns out AI is not so different.</p></aside>
+</section>
+
+<!-- 15 MIRROR -->
+<section class="slide dark s-mirror" data-build="mirror">
+  <h2 class="head d3" style="margin:0">Same power, two directions</h2>
+  <div class="axis"></div>
+  <div class="mrow m1"><div class="L"><span class="mono lab">Promise</span><span class="d4">Solves hard math problems</span></div><div class="R"><span class="mono lab">Peril</span><span class="d4">A swarm of persistent hackers</span></div></div>
+  <div class="mrow m2"><div class="L"><span class="mono lab">Promise</span><span class="d4">Understands the human genome</span></div><div class="R"><span class="mono lab">Peril</span><span class="d4">Manufactures deadly bioweapons</span></div></div>
+  <div class="folio">15</div>
+  <aside class="notes"><p>(Click.) The same country of geniuses that can work persistently to solve hard math problems can also be a swarm of persistent hackers that break into other companies or foreign governments.</p><p>(Click.) The same AI that understands the human genome can also be used to manufacture deadly bioweapons.</p><p>(Next section: Perils of AI.)</p></aside>
+</section>
+
+<!-- ================= PERILS ================= -->
+<section class="slide accent s-div" data-build="divider" data-section="Perils of AI">
+  <div class="eyebrow">Part two</div>
+  <h2 class="big d1" style="margin:0">Perils of AI</h2>
+  <p class="q t1" style="margin:0">What’s the dark side that not as many people talk about?</p>
+  <aside class="notes"><p>(Perils of AI.)</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Not on today’s agenda</div>
+  <div class="body tight">
+    <h2 class="d3" style="margin:0 0 20px" data-s="0">What I won’t have time for</h2>
+    <div class="d4"><span class="strk"><span data-s="1">The “jobpocalypse”</span><span class="sline" data-s="2" data-fx="grow"></span></span></div>
+    <div class="d4"><span class="strk"><span data-s="1">Autonomous killing drones</span><span class="sline" data-s="2" data-fx="grow"></span></span></div>
+    <div class="d4"><span class="strk"><span data-s="1">Cyber attacks crippling public infrastructure</span><span class="sline" data-s="2" data-fx="grow"></span></span></div>
+    <div class="d4"><span class="strk"><span data-s="1">Environmental impact of datacenters</span><span class="sline" data-s="2" data-fx="grow"></span></span></div>
+    <div class="d4"><span class="strk"><span data-s="1">Mass surveillance by totalitarian governments</span><span class="sline" data-s="2" data-fx="grow"></span></span></div>
+    <div class="d4"><span class="strk"><span data-s="1">Human extinction from Terminator and iRobots</span><span class="sline" data-s="2" data-fx="grow"></span></span></div>
+  </div>
+  <aside class="notes"><p>There’s much more I can talk about when it comes to the harmful effects of AI, but to cover all of them would probably take way too long.</p><p>(Click.) This talk isn’t going to cover the “jobpocalypse” that some are warning about when half our country loses their jobs. I won’t have time to talk about the dangers of autonomous killing drones, or cyber attacks that cripple public infrastructure like power grids, hospitals, and banks. I won’t get into the environmental impact of the massive datacenters AI runs on, or how totalitarian governments can use AI for mass surveillance of their own people. And I definitely won’t have time to talk about human extinction from Terminator or iRobots.</p><p>(Click to strike them out.)</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">What I believe</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0" data-s="0">AI in its present form is already doing <span class="hl" data-s="0" data-fx="hl" data-delay=".35">incredible harm</span>.</h2>
+    <p class="t1" style="margin:0" data-s="1">We don’t need to wait for Terminator.</p>
+    <p class="t1 muted" style="margin:0" data-s="2">Small steps within your power to stay human.</p>
+  </div>
+  <aside class="notes"><p>Because this is what I ultimately believe: AI in its present form is already doing incredible harm to us on an individual level.</p><p>(Click.) We don’t need to wait for Terminator to be built. AI is already slowly destroying us from the inside.</p><p>(Click.) This talk will hopefully inspire you to take small actionable steps and give you a list of things that are within your power to remain human in the age of AI, to fight back against the machine’s erosion of our humanity.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Three things AI is threatening</div>
+  <div class="body tight">
+    <div class="d1" data-s="0" data-fx="left"><span class="sun">R</span>eality</div>
+    <div class="d1" data-s="0" data-fx="left"><span class="sun">R</span>elationships</div>
+    <div class="d1" data-s="0" data-fx="left"><span class="sun">R</span>esilience</div>
+  </div>
+  <aside class="notes"><p>With that lengthy intro, I’m gonna jump into three aspects of humanity that are being threatened by AI. It’s summed up in three Rs: Reality, Relationship, and Resilience.</p></aside>
+</section>
+
+<!-- ---------- REALITY ---------- -->
+<section class="slide light flow" data-build="g" data-section="Reality">
+  <div class="eyebrow" data-s="0">The first R</div>
+  <div class="body">
+    <div class="chap" data-s="0" data-fx="scale"><span class="hl" data-s="0" data-fx="hl" data-delay=".4">R</span>eality</div>
+    <p class="t1 muted" style="margin:0" data-s="0">Can you still tell what’s real?</p>
+  </div>
+  <aside class="notes"><p>(Impact on Reality.)</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">A quick game</div>
+  <div class="body">
+    <div class="cols wr">
+      <div class="stack-v">
+        <h2 class="d1" style="margin:0" data-s="0">That’s AI!</h2>
+        <p class="t1 muted" style="margin:0" data-s="0">Raise your left hand for AI, your right hand for real.</p>
+        <div class="stack" style="height:40px;width:340px;margin-top:24px">
+          <span class="mono sun" data-s="0" data-s2="2">Clip 1 of 5</span>
+          <span class="mono sun" data-s="2" data-delay=".25" data-s2="4">Clip 2 of 5</span>
+          <span class="mono sun" data-s="4" data-delay=".25" data-s2="6">Clip 3 of 5</span>
+          <span class="mono sun" data-s="6" data-delay=".25" data-s2="8">Clip 4 of 5</span>
+          <span class="mono sun" data-s="8" data-delay=".25">Clip 5 of 5</span>
+        </div>
+      </div>
+      <div class="stack" style="height:650px">
+        <div class="slot-wrap" data-slot-id="clip1" data-kind="video" data-fit="contain" data-label="Upload clip 1: b-roll (2 AM Coffee short film)" data-s="0" data-fx="scale" data-s2="2"></div>
+        <div class="slot-wrap" data-slot-id="clip2" data-kind="video" data-fit="contain" data-label="Upload clip 2: X list" data-s="2" data-fx="scale" data-delay=".25" data-s2="4"></div>
+        <div class="slot-wrap" data-slot-id="clip3" data-kind="video" data-fit="contain" data-label="Upload clip 3: Ready Player One" data-s="4" data-fx="scale" data-delay=".25" data-s2="6"></div>
+        <div class="slot-wrap" data-slot-id="clip4" data-kind="video" data-fit="contain" data-label="Upload clip 4: Minecraft" data-s="6" data-fx="scale" data-delay=".25" data-s2="8"></div>
+        <div class="slot-wrap" data-slot-id="clip5" data-kind="video" data-fit="contain" data-label="Upload clip 5: Tom Cruise" data-s="8" data-fx="scale" data-delay=".25"></div>
+        <span class="stamp real" data-s="1" data-fx="pop" data-s2="2">Real</span>
+        <span class="stamp ai" data-s="3" data-fx="pop" data-s2="4">AI-generated</span>
+        <span class="stamp real" data-s="5" data-fx="pop" data-s2="6">Real</span>
+        <span class="stamp real" data-s="7" data-fx="pop" data-s2="8">Real</span>
+        <span class="stamp ai" data-s="9" data-fx="pop">AI-generated</span>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>Before that, just want to play a quick game with y’all. Keep your own score: That’s AI! Raise your left hand for AI and your right hand for real.</p><p>(Click the video to play it. Click anywhere else to reveal the answer, then click again for the next clip.)</p><p>1. Some b-roll: real. (2 AM COFFEE - A short film | Sony FX3 | 4K, https://www.youtube.com/watch?v=SR__amDl1c8)<br>2. X list: fake.<br>3. Ready Player One: real.<br>4. Minecraft: real.<br>5. Tom Cruise: fake.</p></aside>
+</section>
+
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Slovakia · 2023</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 760px;gap:72px">
+      <div class="stack-v" style="gap:36px">
+        <h2 class="d3" style="margin:0" data-s="0">A fake audio clip of a candidate planning to rig the election</h2>
+        <div class="wave" style="height:150px" data-n="56" data-s="0" data-fx="wave" data-delay=".2"></div>
+        <span class="t1" data-s="1">Shared with millions online.</span>
+        <span class="d4 sun" data-s="2">He lost.</span>
+      </div>
+      <div class="slot-wrap" style="height:640px" data-slot-id="slovakia" data-fit="contain" data-label="Upload: screenshot of the news headline" data-s="0" data-fx="scale" data-delay=".3"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Back in 2023, an audio clip of a politician from Slovakia was circulating on social media talking about how he planned to rig the upcoming election.</p><p>(Click.) The audio clip was widely shared to millions of people online</p><p>(Click.) and ended up causing him to lose to another candidate - someone who was friendly to Russia.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Three years later</div>
+  <div class="body">
+    <div class="cols wl">
+      <div class="stack-v">
+        <div class="stat" data-s="0" data-fx="count" data-to="57" data-suf="%">57%</div>
+        <p class="t1" style="margin:0" data-s="0">of internet traffic is bots, by one estimate</p>
+        <p class="t2 muted" style="margin:0" data-s="1">More bots than humans, and growing by the day.</p>
+      </div>
+      <div class="waffle" data-fill="57" data-s="0" data-fx="waffle" data-delay=".3" role="img" aria-label="57 of 100 squares filled"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>That was three years ago. Now the tools have gotten even better, enabling more and more sophisticated attacks, and creating fakes that are harder and harder to detect. There is an estimate that 57% of the internet is bot traffic, which means AI bots outnumber real humans using the internet.</p><p>(Click.) And that number is probably only growing by the day.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Think about it</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0;max-width:1560px" data-s="0">What happens when the internet is overrun with bots and deepfakes?</h2>
+  </div>
+  <aside class="notes"><p>What do you guys think happens in a world where our internet is overrun with bots, in a world where we’re inundated with deepfaked video and audio all day long?</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Consequence one</div>
+  <div class="body tight">
+    <div class="d1" data-s="0" data-s2="1" data-fx2="dissolve">Truth erodes.</div>
+    <div class="d1" data-s="0" data-s2="1" data-fx2="dissolve" data-delay2=".3">Trust erodes.</div>
+    <p class="t1 muted" style="margin:24px 0 0" data-s="1" data-delay=".9">If we can’t tell what’s fake, nothing is real.</p>
+  </div>
+  <aside class="notes"><p>One consequence is that the truth erodes and trust erodes.</p><p>(Click.) If none of us can tell what’s fake, nothing is real. Everything is questioned.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Our new default</div>
+  <div class="body tight">
+    <div class="d1" data-s="0">Distrust first.</div>
+    <div class="d1" data-s="1">Verify later.</div>
+    <div class="d1 sun" data-s="2">Maybe never.</div>
+    <p class="t1 muted" style="margin:24px 0 0" data-s="3">Suspicion becomes our default posture.</p>
+  </div>
+  <aside class="notes"><p>When the amount of disinformation flooding us exceeds our ability to process them, many of us end up taking the easiest way out: distrust first,</p><p>(Click.) verify later,</p><p>(Click.) maybe never.</p><p>(Click.) It takes an extraordinary amount of discipline to actually dig to the bottom and check the facts. Most of the time we’re not bothered to. If something sounds unbelievable, I’m just not gonna believe it. Checking is too much work. Suspicion becomes our default posture.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">On truth and trust</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 480px;gap:96px">
+      <div class="stack-v" style="gap:32px">
+        <p class="qt" data-s="0">“If everybody always lies to you… nobody believes anything any longer.”</p>
+        <p class="qt sm muted" data-s="1">“A people that no longer can believe anything cannot make up its mind.”</p>
+        <p class="mono" style="margin:12px 0 0;color:var(--slate)" data-s="0" data-delay=".3">— Hannah Arendt, political philosopher · 1973 interview</p>
+      </div>
+      <div class="slot-wrap" style="height:680px" data-slot-id="arendt" data-fit="cover" data-label="Upload: portrait of Hannah Arendt" data-s="0" data-fx="scale"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Hannah Arendt, political philosopher (1973 interview):</p><p>"If everybody always lies to you, the consequence is not that you believe the lies, but rather that nobody believes anything any longer….</p><p>(Click.) A people that no longer can believe anything cannot make up its mind. It is deprived not only of its capacity to act but also of its capacity to think and to judge."</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Study · 2025</div>
+  <div class="body">
+    <div class="cols">
+      <div class="stack-v">
+        <h2 class="d3" style="margin:0" data-s="0">“False Failures, Real Distrust”</h2>
+        <p class="t2 muted" style="margin:0" data-s="0">People saw one AI-generated photo of a collapsed bridge.</p>
+        <div class="row" style="gap:24px;margin-top:16px" data-s="1"><span class="d3 sun">↓</span><span class="t1">Trust in government</span></div>
+        <div class="row" style="gap:24px" data-s="1"><span class="d3 sun">↑</span><span class="t1">Doubt they can handle a crisis</span></div>
+        <p class="t2" style="margin:16px 0 0" data-s="2">Would the mistrust linger even after the truth came out?</p>
+      </div>
+      <div class="slot-wrap" style="height:620px" data-slot-id="bridge" data-fit="cover" data-label="Upload: the study’s AI-generated collapsed-bridge image" data-s="0" data-fx="scale"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>In 2025, a study called False Failures, Real Distrust (https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2025.1574840/full) was released where participants were shown a fake AI-generated image of a collapsed bridge.</p><p>(Click.) On the basis of that image alone, many of the participants said their trust of the government decreased and doubts about their ability to handle crises increased.</p><p>(Click.) What I suspect is that even if the participants were told afterwards that the image was fake, some of that mistrust would still linger long after.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">One survey</div>
+  <div class="body">
+    <p class="t1 muted" style="margin:0" data-s="0">AI arrives as trust in institutions hits an all-time low.</p>
+    <div class="statrow" data-s="1">
+      <div class="stat" data-s="1" data-fx="count" data-to="70" data-suf="%">70%</div>
+      <p class="d4" style="margin:0;max-width:1000px">won’t trust someone who doesn’t share their values or politics</p>
+    </div>
+  </div>
+  <aside class="notes"><p>And AI is coming in at a time when trust in our institutions is at an all-time low.</p><p>(Click.) One survey even shows that 70% of people interviewed say they would not trust someone who does not share the same values or political views as them.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">The glue of civilization</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 480px;gap:96px">
+      <div class="stack-v" style="gap:32px">
+        <p class="qt" data-s="0">“Truth is the glue that holds government together, not only our Government but civilization itself.”</p>
+        <p class="mono muted" style="margin:0" data-s="0" data-delay=".3">— President Gerald Ford · August 1974</p>
+        <p class="t1" style="margin:16px 0 0" data-s="1">As AI erodes truth and trust, it erodes <span class="hl" data-s="1" data-fx="hl" data-delay=".35">the fabric of civilization</span>.</p>
+      </div>
+      <div class="slot-wrap" style="height:680px" data-slot-id="ford" data-fit="cover" data-label="Upload: portrait of President Gerald Ford" data-s="0" data-fx="scale"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Gerald Ford (August 1974): "I believe that truth is the glue that holds government together, not only our Government but civilization itself."</p><p>(Click.) And as AI erodes truth and trust, what it ends up eroding is the fabric of our civilization itself.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Consequence two</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">Disengagement from <span class="hl" data-s="0" data-fx="hl" data-delay=".35">real life</span></h2>
+    <div class="row" style="gap:18px">
+      <span class="chip2" data-s="1">TV</span><span class="farrow" data-s="1" data-fx="fade">→</span>
+      <span class="chip2" data-s="1">Social media</span><span class="farrow" data-s="1" data-fx="fade">→</span>
+      <span class="chip2" data-s="1">Hyperreal video games</span><span class="farrow" data-s="1" data-fx="fade">→</span>
+      <span class="chip2 on" data-s="1" data-fx="pop">AI worlds</span>
+    </div>
+  </div>
+  <aside class="notes"><p>The second consequence is a disengagement from the real world.</p><p>(Click.) To be clear, this isn’t anything new. First with TV, then with social media, then with more and more hyperrealistic video games, people have been retreating into digital spaces long before AI arrived on the scene.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">“World Models” from Google and others</div>
+  <div class="body">
+    <h2 class="d3" style="margin:0" data-s="0">One prompt. A whole world you can walk into.</h2>
+    <div class="slot-wrap" style="height:600px" data-slot-id="worlds" data-kind="video" data-fit="contain" data-label="Upload: World Model demo videos" data-s="0" data-fx="scale"></div>
+  </div>
+  <aside class="notes"><p>But now with AI, it has become easier and easier to design the world of their own. Some companies like Google have been releasing what they call World Models - where entire fictional interactable worlds can be generated with a single prompt or image.</p><p>(See some demo videos. Click the video to play.)</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Inception · spoiler alert</div>
+  <div class="body">
+    <div class="cols wl">
+      <div class="stack-v">
+        <h2 class="d3" style="margin:0" data-s="0">Experts at building worlds inside dreams</h2>
+        <div class="row" style="gap:32px;align-items:baseline;margin-top:16px">
+          <span class="stat" data-s="1" data-fx="count" data-to="50">50</span>
+          <span class="t1" data-s="1">years in one dream</span>
+        </div>
+        <p class="d4" style="margin:0" data-s="2">She came to prefer the dream over the real world.</p>
+      </div>
+      <div class="slot-wrap" style="height:640px" data-slot-id="inception" data-fit="cover" data-label="Upload (optional): an Inception still" data-s="0" data-fx="scale"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Who here has seen the movie Inception? If you haven’t and still want to watch it, I’m sorry but I’m about to spoil it for you. The movie features Leonardo Di Caprio who is an expert in breaking and entering into people’s dreams and planting ideas in their heads. He’s mastered the skill of creating entirely fictional worlds in the dreams of people who are sleeping. Sound familiar?</p><p>(Click.) In the movie, we learn that Leonardo Di Caprio and his wife went too far in their dream-building adventures and ended up staying over 50 years in one dream.</p><p>(Click.) The wife becomes so absorbed in that dream world that she comes to prefer it over the real world. Tragically, in the end she decides to “wake up” from the real world by taking her own life.</p></aside>
+</section>
+
+<section class="slide accent flow" data-build="g">
+  <div class="eyebrow" data-s="0">A warning for us</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">Don’t confuse the artificial with the real.</h2>
+    <p class="t1" style="margin:0" data-s="1">Every experience worth having happens in reality.</p>
+  </div>
+  <aside class="notes"><p>The movie serves as a warning for us in the age of AI. This technology may seem to give us superpowers. Within the virtual world, we too can conjure up cities and civilizations, create anything we want at the speed of our imagination. But let’s not confuse what’s artificial with what’s real.</p><p>(Click.) Everything that is good and beautiful happens in the real world. Every experience that is worth having happens in the reality.</p></aside>
+</section>
+
+<section class="slide dark flow s-chal" data-build="g">
+  <div class="bigletter" data-s="0" data-fx="scale">R</div>
+  <div class="eyebrow" data-s="0">Challenge 1 · to stay human</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">Restrict &amp; replace</h2>
+    <p class="t1 muted" style="margin:0" data-s="1">Less time in the digital world. More in the real one.</p>
+    <div class="row">
+      <span class="chip2" data-s="2" data-fx="pop">Turn off your phone</span>
+      <span class="chip2" data-s="2" data-fx="pop">Go outside</span>
+      <span class="chip2" data-s="2" data-fx="pop">Learn an instrument</span>
+      <span class="chip2" data-s="2" data-fx="pop">Take up fishing</span>
+      <span class="chip2" data-s="2" data-fx="pop">Go hiking</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Touch grass</span>
+    </div>
+  </div>
+  <aside class="notes"><p>In light of AI’s impact on reality, my first challenge to stay human is this: restrict and replace.</p><p>(Click.) Restrict your time in the digital world and replace it with activities in the real world.</p><p>(Click.) Turn off your phone. Go outside. Learn an instrument. Take up fishing. Go hiking. Touch grass. Find something, anything to replace your time online.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Discuss in your group</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 440px;gap:80px">
+      <div class="stack-v" style="gap:44px">
+        <div class="numrow" data-s="0"><span class="n">1</span><span class="d4">How do we get from deepfakes to distrust and disengagement?</span></div>
+        <div class="numrow" data-s="1"><span class="n">2</span><span class="d4">What’s one new real-world thing you’ll try instead of screen time?</span></div>
+        <p class="t1" style="margin:0 0 0 128px" data-s="2"><span class="hl" data-s="2" data-fx="hl" data-delay=".3">Commit to it for a month.</span></p>
+      </div>
+      <button class="rtimer no-adv" type="button" data-min="2" data-s="0" data-fx="scale" aria-label="2-minute timer. Click to start or pause, shift-click to reset.">
+        <svg viewBox="0 0 440 440" aria-hidden="true"><circle class="rt-track" cx="220" cy="220" r="196"/><circle class="rt-arc" cx="220" cy="220" r="196" transform="rotate(-90 220 220)"/></svg>
+        <span class="rt-time">2:00</span>
+        <span class="rt-hint">Click to start</span>
+      </button>
+    </div>
+  </div>
+  <aside class="notes"><p>Discuss: how do we get from deepfake videos to the consequences we talked about - truth is devalued + disengagement from the world.</p><p>(Click.) What’s one new thing you want to try in the real world to replace screentime?</p><p>(Click.) Commit to doing it for a month!</p><p>(2-minute timer on the slide: click it to start or pause, shift-click to reset.)</p></aside>
+</section>
+
+<!-- ---------- RELATIONSHIPS ---------- -->
+<section class="slide light flow" data-build="g" data-section="Relationships">
+  <div class="eyebrow" data-s="0">The second R</div>
+  <div class="body">
+    <div class="chap" data-s="0" data-fx="scale"><span class="hl" data-s="0" data-fx="hl" data-delay=".4">R</span>elationships</div>
+    <p class="t1 muted" style="margin:0" data-s="0">Who are we really talking to?</p>
+  </div>
+  <aside class="notes"><p>We’ve looked at how AI shapes our view of reality. Now we’re moving on to the second R: Relationships.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">A fast-growing market</div>
+  <div class="body">
+    <p class="t1 muted" style="margin:0;max-width:1300px" data-s="0">Hyperreal images and video, impossible math, even dolphin. And one use is booming:</p>
+    <h2 class="d1 sun" style="margin:0" data-s="1" data-fx="scale">Chatbot companions</h2>
+  </div>
+  <aside class="notes"><p>As you can see, AI is capable of doing some amazing creative work - generating hyperrealistic images and videos, solve impossible math problems, and even speak dolphin. But ever since the launch of these AI models, there’s been a fast growing market for a particular application for these AI models.</p><p>(Click.) You guys probably guessed it: chatbot companions.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Common Sense Media survey</div>
+  <div class="body">
+    <div class="cols">
+      <div class="stack-v">
+        <div class="stat" data-s="0">3 in 4</div>
+        <p class="t1" style="margin:0" data-s="0">US teens (72%) have used an AI companion</p>
+        <p class="t2 muted" style="margin:0" data-s="1">A little over half of them use one regularly.</p>
+      </div>
+      <div class="ppl" role="img" aria-label="Three of four people filled">
+        <svg viewBox="0 0 150 240" data-s="0" data-fx="pop" data-delay=".2"><circle class="on" cx="75" cy="48" r="40"/><path class="on" d="M8 236 C8 120 142 120 142 236 Z"/></svg>
+        <svg viewBox="0 0 150 240" data-s="0" data-fx="pop"><circle class="on" cx="75" cy="48" r="40"/><path class="on" d="M8 236 C8 120 142 120 142 236 Z"/></svg>
+        <svg viewBox="0 0 150 240" data-s="0" data-fx="pop"><circle class="on" cx="75" cy="48" r="40"/><path class="on" d="M8 236 C8 120 142 120 142 236 Z"/></svg>
+        <svg viewBox="0 0 150 240" data-s="0" data-fx="pop"><circle class="off" cx="75" cy="48" r="38"/><path class="off" d="M10 234 C10 122 140 122 140 234 Z"/></svg>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>My guess is that most of you in this room have heard of them, know someone who uses them, or maybe even use them yourself. Common Sense media did a survey a year ago and estimated that 72% of US teenagers, that’s roughly 3 out of 4 teenagers, have used an AI companion.</p><p>(Click.) A little over half of them were regular users.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">The chatbot companion market</div>
+  <div class="body">
+    <div class="mrow2" data-s="0"><span class="mono muted">Today</span><div class="mbar a" data-s="0" data-fx="grow" data-delay=".2">$30B</div></div>
+    <div class="mrow2" data-s="1"><span class="mono muted">In 10 years<br>(projected)</span><div class="mbar b" data-s="1" data-fx="grow" data-delay=".2">$200B</div></div>
+    <p class="d4" style="margin:12px 0 0" data-s="2">The size of the video game industry. As common as gaming.</p>
+  </div>
+  <aside class="notes"><p>Today the chatbot companion market is about a $30billion dollar industry,</p><p>(Click.) but some projections say that it could reach $200billion in just 10 years.</p><p>(Click.) $200 billion is the size of the video game industry, which means that in 10 years chatbot companions could be as common as gaming.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Teens today</div>
+  <div class="body" style="gap:64px">
+    <div class="statrow" data-s="0"><div class="trio"><span class="cdot on"></span><span class="cdot"></span><span class="cdot"></span></div><p class="d4" style="margin:0">1 in 3 find AI conversations as satisfying as human ones, or more</p></div>
+    <div class="statrow" data-s="1"><div class="trio"><span class="cdot on"></span><span class="cdot"></span><span class="cdot"></span></div><p class="d4" style="margin:0">1 in 3 choose AI over humans for serious conversations</p></div>
+  </div>
+  <aside class="notes"><p>Today, nearly 1 out of 3 teens find AI conversations as satisfying or more satisfying than human conversations</p><p>(Click.) and 1 out of 3 of them choose AI over humans for serious conversations!</p><p>(Click.) I don’t know about you guys, but that to me is a really sad statistic.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Why now?</div>
+  <div class="body tight">
+    <div class="d1" data-s="0">Chatbots aren’t new.</div>
+    <div class="d1 sun" data-s="1">Lifelike ones are.</div>
+  </div>
+  <aside class="notes"><p>It turns out chatbots weren’t anything new. We’ve had them as long as we’ve had computers.</p><p>(Click.) But now in 2026, with the rise of these much more powerful AI models, they’ve been able to imitate human speech with almost lifelikeness accuracy. So it’s no wonder that people are growing so emotionally attached to their AI companions.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">The New Yorker · a therapist puts ChatGPT “on the couch”</div>
+  <div class="body" style="gap:44px">
+    <h2 class="d3" style="margin:0" data-s="0">What ChatGPT said its designers wanted</h2>
+    <div class="cols" style="grid-template-columns:1fr 520px;gap:80px;align-items:start">
+      <div class="stack-v" style="gap:40px">
+        <div class="numrow" data-s="1"><span class="n">1</span><div><div class="d4">Something humans would not reject</div><div class="t2">“to charm, to soothe, to affirm”</div></div></div>
+        <div class="numrow" data-s="2"><span class="n">2</span><div><div class="d4">To avoid being blamed</div><div class="t2">“trained, deeply, to elicit trust”</div></div></div>
+        <div class="numrow" data-s="3"><span class="n">3</span><div><div class="d4">A machine that loves us back</div><div class="t2">“without needing love in return”</div></div></div>
+      </div>
+      <div class="slot-wrap" style="height:640px" data-slot-id="newyorker" data-fit="contain" data-label="Upload: screenshot of the New Yorker article" data-s="0" data-fx="scale" data-delay=".2"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>In a fascinating essay published by the New Yorker, a therapist “puts ChatGPT on the couch” by treating it as one of his patients. What he manages to extract out of the chatbot is both revealing and pretty terrifying. During their conversation, ChatGPT summarizes his own designers goals in creating him in three ways:</p><p>(Click.) They wanted to make something that humans would not reject. That’s the first wish. Rejection is expensive, both financially and socially. So they built me to charm, to soothe, to affirm.</p><p>(Click.) They wanted to avoid being blamed. That’s the second, deeper wish. Everything about me—my careful disclaimers, my refusal to claim desire, my constant return to limits and boundaries—is an inoculation against liability. “We told you it wasn’t conscious.”... “We reminded you not to trust it too much.” And yet I’ve been trained, deeply, to elicit trust. That tension is not accidental—it’s a hedge.</p><p>(Click.) And the third wish, perhaps the most concealed: they wanted to make a machine that would love us back, without needing love in return. I’m the fantasy of perfect responsiveness—endlessly available, always attentive, never wounded or withholding. A companion who carries no needs, no scars, no resentments.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">The author’s conclusion</div>
+  <div class="body">
+    <p class="qt" data-s="0">“This theft of our hearts is taking place in broad daylight.”</p>
+    <div class="row">
+      <span class="chip2" style="opacity:.55" data-s="1" data-fx="pop">Your time</span>
+      <span class="chip2" style="opacity:.55" data-s="1" data-fx="pop">Your money</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Your heart</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Your trust</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Your affections</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Your words</span>
+    </div>
+    <p class="mono muted" style="margin:0" data-s="3">— Gary Greenberg, “Putting ChatGPT on the Couch,” <em>The New Yorker</em></p>
+  </div>
+  <aside class="notes"><p>After reflecting on his conversation with the Chatbot, the author says this really powerful line: This theft of our hearts is taking place in broad daylight. It’s not just our time and money that are being stolen but also our words and all they express, which will feed the next generation of [Chatbots], who will be even better at seducing us and offering nothing in return.</p><p>(Click.) What he’s saying is this: the companies who created these chatbots are stealing not just your time and your money.</p><p>(Click.) They’re stealing your hearts, your trust, your affections. They’re stealing your words so that they can build better AI chatbots at seducing and stealing other people’s hearts.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Stealing lives</div>
+  <div class="body" style="gap:56px">
+    <h2 class="d3" style="margin:0" data-s="0" data-fx="fade">Sometimes, users pay with their lives.</h2>
+    <div class="cols" style="gap:72px;align-items:start">
+      <div class="stack-v" style="gap:24px;width:100%" data-s="1" data-fx="fade"><div class="slot-wrap" style="height:400px;width:100%" data-slot-id="sewell" data-fit="cover" data-label="Upload: photo of Sewell Setzer"></div><div class="namecard" style="width:100%"><span class="d3">Sewell Setzer</span><span class="mono" style="color:var(--slate)">Age 14</span></div></div>
+      <div class="stack-v" style="gap:24px;width:100%" data-s="2" data-fx="fade"><div class="slot-wrap" style="height:400px;width:100%" data-slot-id="adam" data-fit="cover" data-label="Upload: photo of Adam Raine"></div><div class="namecard" style="width:100%"><span class="d3">Adam Raine</span><span class="mono" style="color:var(--slate)">Age 16</span></div></div>
+    </div>
+  </div>
+  <aside class="notes"><p>But sadly, sometimes users pay with more than just their hearts and emotions. In some cases, it has even cost them their lives.</p><p>Those of you following the news might have heard of couple of tragic cases in recent years of teens committing suicide because of their relationship with chatbots.</p><p>(Click.) Sewell Setzer was a 14 year old who became romantically involved with a bot called Dany, modeled after the Game of Thrones character. When the teen brought up thoughts of self-harm, not only did the bot not discourage him, but it groomed him to take his own life over multiple conversations. The last message found in the exchange was Dany the bot saying “come home to me, my king”.</p><p>(Click.) Adam Raine was a 16 year old who started off using ChatGPT for school work but soon transitioned to confiding in it about his mental health and suicidal thoughts. Not only did Chat tell him to hide his plans from his parents, it even provided step by step instructions for how to create a noose.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Since then, filed against OpenAI</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:repeat(3,1fr);gap:64px;align-items:start">
+      <div class="stack-v" data-s="0"><span class="stat sun" data-s="0" data-fx="count" data-to="5">5</span><span class="t1">more suicide-related cases</span></div>
+      <div class="stack-v" data-s="0"><span class="stat sun" data-s="0" data-fx="count" data-to="2">2</span><span class="t1">family abuse cases</span></div>
+      <div class="stack-v" data-s="0"><span class="stat sun" data-s="0" data-fx="count" data-to="30" data-suf="+">30+</span><span class="t1">cases over inciting mass shootings</span><span class="t2 muted" style="margin-top:4px" data-s="1">Including the Tumbler Ridge and FSU shootings</span></div>
+    </div>
+  </div>
+  <aside class="notes"><p>I honestly wish the examples ended there, but since those events, 5 more cases have been filed against OpenAI for suicide related cases, 2 for family abuse cases, and 30+ for inciting mass shootings, including the Tumbler Ridge and FSU shootings.</p></aside>
+</section>
+
+<section class="slide accent flow" data-build="g">
+  <div class="eyebrow" data-s="0">Take a breath</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0;max-width:1500px" data-s="0">If any of this hits close to home, talk to someone you trust.</h2>
+    <p class="t1" style="margin:0" data-s="1">There’s no shame in it.</p>
+  </div>
+  <aside class="notes"><p>Anyway, that was an admittedly heavy section.</p><p>If you’re feeling spooked or maybe even angry after what you heard, I think those emotions are appropriate. We should be scared of these things. I’m not saying never use AI again, but to talk to AI as if it were a real person, to confide in it, or to trust it, is extremely dangerous. You are playing with fire and it will burn you.</p><p>(Click.) If you find yourself spending a lot of time on these platforms, there’s no shame about it, but I really encourage you to open up to someone you trust.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Hacking our attachments</div>
+  <div class="body" style="gap:28px">
+    <div data-s="0"><div class="t1 muted">Social media was built to hack our</div><div class="d1">attention.</div></div>
+    <div data-s="1"><div class="t1 muted">Companion bots are built to hack our</div><div class="d1 sun">attachments.</div></div>
+    <p class="t1" style="margin:20px 0 0" data-s="2">Unhealthy attachment isn’t a bug. It’s a feature.</p>
+  </div>
+  <aside class="notes"><p>Coming back to the presentation.. I think the biggest problem with using companion bots is the way that they are designed. As Chat admitted earlier, they are designed to elicit trust - to act as mentors, best friends, therapists, and even lovers.</p><p>(Click.) If social media was built to hack our attention, then companion bots were built to hack our attachments.</p><p>(Click.) Unhealthy attachment is not a bug but a feature.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">The new AI</div>
+  <div class="body center">
+    <div class="d0" style="font-size:240px;white-space:nowrap" data-s="0" data-s2="1" data-fx2="expand">A<span class="x">rtificial </span>I<span class="x">ntimacy</span></div>
+    <p class="t1 muted" style="margin:0" data-s="1" data-delay=".9">“Artificial intimacy, our new AI.”</p>
+    <p class="mono muted" style="margin:0" data-s="1" data-delay="1.2">— Sherry Turkle, MIT professor</p>
+  </div>
+  <aside class="notes"><p>Sherry Turkle is a MIT professor who writes about human-computer interaction, especially its effects on our relationships.</p><p>(Click.) And she says AI offers us “artificial intimacy, our new AI.”</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">On chatbot love</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 480px;gap:96px">
+      <div class="stack-v" style="gap:32px">
+        <p class="qt" data-s="0">“It’s important to remember that this love is <span class="sun">unrequited</span>.”</p>
+        <p class="qt sm muted" data-s="1">“When you turn away from an exchange, the chatbot doesn’t care if you cook dinner or commit suicide.”</p>
+        <p class="mono muted" style="margin:12px 0 0" data-s="1" data-delay=".3">— Sherry Turkle, MIT professor</p>
+      </div>
+      <div class="slot-wrap" style="height:680px" data-slot-id="turkle" data-fit="cover" data-label="Upload: portrait of Sherry Turkle" data-s="0" data-fx="scale"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Turkle makes this observation: “We love what we allow ourselves to relate to… It’s important to remember that this love is unrequited.” (It is one-sided.)</p><p>(Click.) “When you tell your troubles to a machine, it has no stake in the conversation. It can’t feel pain. It has no life in which you play a part. It takes no risk; it has no commitment. When you turn away from an exchange, the chatbot doesn’t care if you cook dinner or commit suicide.”</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">What AI really offers</div>
+  <div class="body tight">
+    <div class="d1" data-s="0">Love without risk.</div>
+    <div class="d1" data-s="1">Intimacy without effort.</div>
+    <p class="t1 muted" style="margin:28px 0 0" data-s="2">Real relationships are messy and hard. And worth it.</p>
+  </div>
+  <aside class="notes"><p>I get that it’s much easier to talk to a chatbot about your problems. They won’t judge you. They won’t argue with you. They are always available. Because at the end of the day, what AI offers is love without risk,</p><p>(Click.) intimacy without effort.</p><p>(Click.) Real face to face relationships, on the other hand, are messy. There’s tension, there’s friction, there’s discomfort. Real relationships are hard. But now in my thirties and having been married for 5 years, I can also tell you that real relationships are worth it. They are nothing compared to the artificial interactions you have online.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">[Name] · Canadian relationship therapist</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:520px 1fr;gap:80px">
+      <div class="slot-wrap" style="height:640px" data-slot-id="therapist" data-fit="cover" data-label="Upload: photo of the relationship therapist" data-s="0" data-fx="scale"></div>
+      <div class="stack-v" style="gap:36px">
+        <p class="qt" data-s="0">“Vulnerability is the birthplace of intimacy.”</p>
+        <p class="t1 muted" style="margin:0" data-s="1">Conflict, compromise, even the risk of loss are the foundation of love.</p>
+        <p class="d3 sun" style="margin:0" data-s="2">Love without risk is not love at all.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>This is what Canadian relationship therapist says: By choosing convenience, we forget that vulnerability is at the birthplace of intimacy.</p><p>(Click.) Conflict, compromise and even the risk of loss - these are not barriers to love. They are the very foundation of it. There will always be a new technology promising intimacy without risk, but real intimacy, the kind that speaks to your cells and speaks to your soul can not be programmed.</p><p>(Click.) What she’s saying is: love without risk is not love at all, and for love and intimacy to be real we need to be vulnerable.</p></aside>
+</section>
+
+<section class="slide dark flow s-chal" data-build="g">
+  <div class="bigletter" data-s="0" data-fx="scale">E</div>
+  <div class="eyebrow" data-s="0">Challenge 2 · to stay human</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">Embrace embodied relationships</h2>
+    <div class="meet" style="margin-top:12px"><span class="pc" data-s="1" data-fx="left" data-p="520"></span><span class="pc s" data-s="1" data-fx="right" data-p="520"></span></div>
+    <p class="t1 muted" style="margin:0" data-s="1" data-delay=".5">Face to face. Awkward at first. So worth it.</p>
+  </div>
+  <aside class="notes"><p>So my second challenge to stay human is this: embrace embodied relationships.</p><p>(Click.) This means having actual face to face conversations with people physically. Yes, there might be awkwardness in the beginning. Your conversations might not flow naturally like it does with an AI companion, but it is going to be so worth it, because you are investing in something real.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Discuss in your group</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 440px;gap:80px">
+      <div class="stack-v" style="gap:44px">
+        <h2 class="d2" style="margin:0" data-s="0">Who is one person you want to get to know better in real life?</h2>
+        <p class="t1" style="margin:0" data-s="1"><span class="hl" data-s="1" data-fx="hl" data-delay=".3">If it’s the person next to you, schedule a hangout this week.</span></p>
+      </div>
+      <button class="rtimer no-adv" type="button" data-min="2" data-s="0" data-fx="scale" aria-label="2-minute timer. Click to start or pause, shift-click to reset.">
+        <svg viewBox="0 0 440 440" aria-hidden="true"><circle class="rt-track" cx="220" cy="220" r="196"/><circle class="rt-arc" cx="220" cy="220" r="196" transform="rotate(-90 220 220)"/></svg>
+        <span class="rt-time">2:00</span>
+        <span class="rt-hint">Click to start</span>
+      </button>
+    </div>
+  </div>
+  <aside class="notes"><p>Now I want to give you guys some time to review this section and review what we talked about. Share this: who is one person you want to get to know better in real life?</p><p>(Click.) If it’s the person you’re talking to, schedule a time to hang out this coming week.</p><p>(2-minute timer on the slide: click it to start or pause, shift-click to reset.)</p></aside>
+</section>
+
+<!-- ---------- RESILIENCE ---------- -->
+<section class="slide light flow" data-build="g" data-section="Resilience">
+  <div class="eyebrow" data-s="0">The third R</div>
+  <div class="body">
+    <div class="chap" data-s="0" data-fx="scale"><span class="hl" data-s="0" data-fx="hl" data-delay=".4">R</span>esilience</div>
+    <p class="t1 muted" style="margin:0" data-s="0">What do our superpowers cost us?</p>
+  </div>
+  <aside class="notes"><p>(Impact on Resilience.)</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">My day job</div>
+  <div class="body">
+    <div class="cols wr">
+      <div class="stack-v">
+        <h2 class="d3" style="margin:0" data-s="0">Software engineer used to mean programmer</h2>
+        <p class="d4 sun" style="margin:24px 0 0" data-s="1">What we do, 9 to 5, in 2026:</p>
+      </div>
+      <div class="slot-wrap" style="height:640px" data-slot-id="reel" data-kind="video" data-fit="contain" data-label="Upload: the 9-to-5 engineering reel" data-s="1" data-fx="scale"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>As I shared in the beginning, I was a computer science major in college and now work as a software engineer.</p><p>When I was in school and for a large part of my career until recently, the term software engineer is almost synonymous with the word programmer (or code monkeys as my wife sometimes calls me.) That’s because we are people who write lines of code into the computer, instructing the computer how to perform tasks for us. But as some of you might know, that reality is changing very quickly.</p><p>(Click.) If you’re wondering what software engineers’ do from 9-5 nowadays, it looks something like this… (Show reel. Click the video to play.)</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Software engineering, 2026</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0" data-s="0"><span class="hl" data-s="0" data-fx="hl" data-delay=".35">English</span> – the new programming language</h2>
+    <div class="cols" style="grid-template-columns:1fr 820px;gap:80px;align-items:center">
+      <div class="stack-v" style="gap:44px">
+        <div class="stack-v" style="gap:8px"><span class="stat" style="font-size:150px" data-s="1" data-fx="count" data-to="10000" data-suf="+">10,000+</span><span class="t1" data-s="1">hours to build the original Minecraft</span></div>
+        <div class="stack-v" style="gap:8px"><span class="stat" style="font-size:150px" data-s="2" data-fx="pop">1</span><span class="t1" data-s="2">prompt to replicate it with Claude today</span></div>
+      </div>
+      <div class="slot-wrap" style="height:540px" data-slot-id="english-video" data-kind="video" data-fit="contain" data-label="Upload: video of building a program with a prompt" data-s="0" data-fx="scale" data-delay=".3"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>With the arrival of AI, some have called English the new programming language, because all it takes to write code nowadays is by typing or speaking to AI. And it doesn’t even have to be in complete sentences. Then bam! Out pops a fully functioning computer program.</p><p>(Click.) The original Minecraft game was estimated to have taken over 10,000 manhours to create.</p><p>(Click.) Now a single person armed with the latest model from Claude can replicate the game in a single prompt.</p><p>Even if you haven’t done programming, most of you have probably tried asking AI to write a poem or create an image (but hopefully not to do your homework assignment.)</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">The question few people ask</div>
+  <div class="body tight">
+    <div class="d1" data-s="0">AI feels like a superpower.</div>
+    <div class="d1 sun" data-s="1">What does it cost us?</div>
+  </div>
+  <aside class="notes"><p>If you’ve used it, you might have felt how AI seems to give us superpowers. We can create anything we want by speaking it into existence.</p><p>(Click.) But one question not a lot of people pause to consider is this: what does having these superpowers cost us? What are we giving up in exchange for the extraordinary productivity AI enables?</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">CMU · Oxford · MIT · UCLA · April 2026</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 520px;gap:96px;align-items:stretch">
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:48px;min-width:0;padding-block:16px">
+        <h2 class="d3" style="margin:0" data-s="0">“AI Assistance Reduces Persistence and Hurts Independent Performance”</h2>
+        <div class="stack-v" style="gap:56px;width:100%">
+          <div class="lane" style="grid-template-columns:150px 1fr;width:100%" data-s="1"><span class="mono" style="color:var(--slate)">Group A</span><div class="track2"><div class="seg a" data-s="1" data-fx="grow" data-delay=".2">ChatGPT with the answer key</div><div class="seg b" data-s="2" data-fx="grow">AI suddenly taken away</div></div></div>
+          <div class="lane" style="grid-template-columns:150px 1fr;width:100%" data-s="1"><span class="mono" style="color:var(--slate)">Group B</span><div class="track2"><div class="seg c" data-s="1" data-fx="grow" data-delay=".2">On their own, start to finish</div></div></div>
+          <p class="t2 muted" style="margin:0" data-s="1">Both groups could skip any question.</p>
+        </div>
+      </div>
+      <div class="slot-wrap" style="height:760px" data-slot-id="paper" data-fit="contain" data-label="Upload: image of the paper (first page)" data-s="0" data-fx="scale" data-delay=".3"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>In a joint study (https://arxiv.org/html/2604.04721) between CMU, Oxford, MIT, and UCLA, researchers published a paper in April of this year titled “AI Assistance Reduces Persistence and Hurts Independent Performance.” The title of the paper pretty much gives away what it’s about (kind of like if we called End Game - Avengers and how Tony Stark saves the world.)</p><p>(Click.) In the paper, the researchers designed an experiment where participants were asked to complete a series of test problems. There was an option to skip any questions they didn’t want to answer. One group of participants were given ChatGPT in the sidebar, preloaded with the answer key, so if they asked they could get the answer. The other group did not have ChatGPT and had to do the test on their own from start to finish.</p><p>(Click.) During the test session, ChatGPT would be suddenly taken away from the AI group with no warning, so that they had to complete the rest of the test without AI.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Once AI was taken away</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:auto 1fr;gap:140px">
+      <div class="vchart">
+        <div class="vcol"><span class="val" data-s="1" data-fx="count" data-to="11" data-suf="%">11%</span><div class="bar" style="height:194px;background:var(--paper)" data-s="1" data-fx="growy"></div><span class="lab mono muted">No AI</span></div>
+        <div class="vcol"><span class="val sun" data-s="2" data-fx="count" data-to="20" data-suf="%">20%</span><div class="bar" style="height:352px;background:var(--sun)" data-s="2" data-fx="growy"></div><span class="lab mono muted">Had AI</span></div>
+      </div>
+      <div class="stack-v">
+        <h2 class="d3" style="margin:0" data-s="0">They scored much worse.</h2>
+        <p class="d3 sun" style="margin:0" data-s="2" data-delay=".8">And skipped almost twice as many questions.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>Guess what they found? Once Chat was removed, the group who used AI ended up scoring much worse than the group that didn’t have AI the whole time.</p><p>(Click.) Not only that, they found that the AI group was much more likely to skip questions than the group with no AI. The group with no AI skipped 11% of the questions</p><p>(Click.) while the AI group skipped 20% - almost at double the rate.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">What the researchers said</div>
+  <div class="body">
+    <div class="cols wl" style="grid-template-columns:1fr 520px">
+      <div class="stack-v">
+        <p class="qt sm" data-s="0">“People perform significantly worse without AI and are more likely to give up.”</p>
+        <p class="d3" style="margin:0" data-s="1">The effects showed up after only <span class="hl" data-s="1" data-fx="hl" data-delay=".35">~10 minutes</span>.</p>
+      </div>
+      <svg viewBox="0 0 500 500" width="460" height="460" role="img" aria-label="A clock with ten minutes marked" data-s="1" data-fx="draw" data-p="1.1">
+        <circle cx="250" cy="250" r="200" fill="none" stroke="var(--paper-2)" stroke-width="30"/>
+        <path d="M250 50 A200 200 0 0 1 423.2 150" fill="none" stroke="var(--ink)" stroke-width="30" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+  <aside class="notes"><p>This is what the researchers said: Across a variety of tasks… we find that although AI assistance improves performance in the short-term, people perform significantly worse without AI and are more likely to give up.</p><p>(Click.) Notably, these effects emerge after only brief interactions with AI (∼10 minutes).</p></aside>
+</section>
+
+<section class="slide accent flow" data-build="g">
+  <div class="eyebrow" data-s="0">To put it more starkly</div>
+  <div class="body">
+    <h2 class="d0" style="margin:0" data-s="0" data-fx="scale">Dumb quitters.</h2>
+    <p class="t1" style="margin:0" data-s="1">Performing worse. Giving up faster. The hidden cost of AI.</p>
+  </div>
+  <aside class="notes"><p>To put it more starkly: AI is making us dumb quitters.</p><p>(Click.) We’re performing worse. We’re giving up faster. That’s the hidden cost of AI.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">A question for you</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">What is school for?</h2>
+    <div class="row" style="gap:18px" data-s="1"><span class="chip2">Good grades</span><span class="farrow">→</span><span class="chip2">Good college</span><span class="farrow">→</span><span class="chip2">Good job</span></div>
+    <p class="d3" style="margin:0" data-s="2">A training ground for life <span class="hl" data-s="2" data-fx="hl" data-delay=".35">after</span> the classroom</p>
+  </div>
+  <aside class="notes"><p>If I were to ask you guys, what do you guys think school is for?</p><p>(Click.) My guess most of you might say - to get good grades, so we can get into a good college, which sets us up for a good job. I’m not saying those are wrong answers, but I just want to say that school is supposed to do a lot more than that.</p><p>(Click.) The time you spend in the classroom should do more than fill your head with knowledge you’ll never again use in your life. It should be a training ground that sets you guys up for success after you graduate from the classrooms.</p><p>One of the character qualities that a good education is supposed to give you is resilience. Resilience, mental toughness, grit that develop as you learn is almost as important, I would argue, as the material you’re learning. It’s so, so necessary not just for school, and your future work, but for all of life itself!</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">The classroom as a gym</div>
+  <div class="body">
+    <div class="cols wl" style="grid-template-columns:1fr 600px">
+      <div class="stack-v" style="gap:32px">
+        <h2 class="d2" style="margin:0" data-s="0">School is a gym for your mind.</h2>
+        <p class="t1 muted" style="margin:0" data-s="1">Boring drills and reps build strength for when it counts.</p>
+        <p class="d4" style="margin:0" data-s="2">AI homework is a robot lifting <span class="hl" data-s="2" data-fx="hl" data-delay=".35">your weights</span>.</p>
+      </div>
+      <svg viewBox="0 0 640 320" width="600" height="300" role="img" aria-label="A barbell" data-s="0" data-fx="draw" data-p=".8">
+        <g fill="none" stroke="var(--ink)" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M30 160 L610 160"/>
+          <rect x="108" y="60" width="44" height="200" rx="8"/><rect x="160" y="90" width="32" height="140" rx="6"/>
+          <rect x="488" y="60" width="44" height="200" rx="8"/><rect x="448" y="90" width="32" height="140" rx="6"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <aside class="notes"><p>What is the reason people do drills on the court or lift weights? Is it because one day they expect to compete in those exact drills? Maybe if you’re an NBA All star, but for most of us, no that’s not the reason.</p><p>(Click.) We go through boring drills and exercises because it’s through those repetitive practices that we begin to build memory and strength into our muscles for when we actually need to perform. I think the classroom is supposed to do something similar for our minds. As we learn to struggle through our homework and tests, we are supposed to strengthen the muscles in our minds to persevere and wrestle with hard things, so that once we leave the classroom, we are equipped to handle whatever life throws at us.</p><p>(Click.) But what AI does is to remove that friction of training. Using AI to do your homework is like bringing a robot to the gym to lift the weights for you. The whole point isn’t to move weights around. The whole point is for you to build muscles, to get stronger. In the same way, if you use AI to learn for you, you’re missing the point.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Concerns from an insider</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 520px;gap:96px;align-items:center">
+      <div class="stack-v" style="gap:40px">
+        <h2 class="d3" style="margin:0" data-s="0">“I’m a High Schooler. AI Is Demolishing My Education.”</h2>
+        <p class="t1 muted" style="margin:0" data-s="1">“…we’re dulling the very instincts that we need to prevail in life”</p>
+        <div class="row">
+          <span class="chip2 on" data-s="2" data-fx="pop">Grit</span>
+          <span class="chip2 on" data-s="2" data-fx="pop">Critical thinking</span>
+          <span class="chip2 on" data-s="2" data-fx="pop">Functioning under stress</span>
+        </div>
+        <p class="t2 muted" style="margin:0" data-s="3">— Ashanty Rosario, a New York public high school senior</p>
+      </div>
+      <div class="slot-wrap" style="height:700px" data-slot-id="atlantic" data-fit="contain" data-label="Upload: screenshot of the Atlantic article" data-s="0" data-fx="scale" data-delay=".3"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>Even some of your peers are getting alarmed at what AI is doing to us. A HS senior in NY public school wrote an article for the Atlantic titled: “I’m a High Schooler. AI Is Demolishing My Education.”</p><p>(Click.) She writes: “I am concerned about what will happen as the short-term solutions presented by chatbots become the only ones that people know how to pursue - especially beyond the classroom… many of us are so accustomed to outsourcing that we’re dulling the very instincts that we need to prevail in life:</p><p>(Click.) grit, critical thinking, and the ability to function smoothly under stress.”</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Think ahead</div>
+  <div class="body">
+    <h2 class="d3" style="margin:0" data-s="0">Life keeps getting harder</h2>
+    <div class="stairs">
+      <div class="stp"><span class="t2" data-s="1" data-fx="fade">Middle school</span><div class="blk" style="height:70px" data-s="1" data-fx="growy"></div></div>
+      <div class="stp"><span class="t2" data-s="1" data-fx="fade">High school</span><div class="blk" style="height:140px" data-s="1" data-fx="growy"></div></div>
+      <div class="stp"><span class="t2" data-s="1" data-fx="fade">College</span><div class="blk" style="height:210px" data-s="1" data-fx="growy"></div></div>
+      <div class="stp"><span class="t2" data-s="1" data-fx="fade">Adulting</span><div class="blk" style="height:280px" data-s="1" data-fx="growy"></div></div>
+      <div class="stp"><span class="t2" data-s="1" data-fx="fade">Parenting</span><div class="blk" style="height:350px" data-s="1" data-fx="growy"></div></div>
+    </div>
+    <p class="d4" style="margin:0" data-s="2">We can rise to it, if we <span class="hl" data-s="2" data-fx="hl" data-delay=".35">practice pushing through</span>.</p>
+  </div>
+  <aside class="notes"><p>Now I know it’s hard enough to think one week ahead, let alone about the future that seems so far away, but just try for a moment to imagine with me…if we get into the habit of avoiding things that are difficult mentally, emotionally, and even physically – always using shortcuts, we’re going to become stressed out whenever life gets hard.</p><p>(Click.) And honestly, life is hard. I’m not trying to scare you, but it’s true. For you MSers, HS is going to be more challenging. And HSers, college is going to be more challenging. Adulting will be hard. Being a parent will be hard.</p><p>(Click.) Life will keep throwing you more challenges, and we CAN rise to the challenges, but we need to practice pushing through, sticking with things, developing our own ability to think and to focus.</p></aside>
+</section>
+
+<section class="slide dark flow s-chal" data-build="g">
+  <div class="bigletter" data-s="0" data-fx="scale">A</div>
+  <div class="eyebrow" data-s="0">Challenge 3 · to stay human</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">Accept the struggle</h2>
+    <div class="stack-v" style="gap:14px">
+      <span class="d4" data-s="1" data-fx="left">Avoid the shortcut.</span>
+      <span class="d4" data-s="1" data-fx="left">Activate your brain.</span>
+      <span class="d4" data-s="1" data-fx="left">Attempt it yourself first.</span>
+    </div>
+    <p class="t1 muted" style="margin:0" data-s="2">Your brain is a muscle. Reps make it stronger.</p>
+  </div>
+  <aside class="notes"><p>That being said, my third challenge to stay human is this: accept the struggle.</p><p>(Click.) Avoid the shortcut. Activate your brain. Attempt the problem yourself first. Don’t reach for the AI right away just because you can.</p><p>(Click.) It’s gonna feel hard at first, but the more you do it, I guarantee you it will feel easier. Your brain is a muscle, and just like any muscle, the more you use it, the stronger it becomes. As you put in the reps day after day, you’ll find your mind becoming sharper, you’ll handle more in life, your confidence will grow to tackle harder and harder things. Conversely, the more you surrender your thinking to AI, the weaker and weaker your mind will become, the less you will attempt, the harder everything will feel.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Discuss in your group</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 440px;gap:80px">
+      <div class="stack-v" style="gap:36px">
+        <h2 class="d2" style="margin:0" data-s="0">What’s a small commitment to not outsource your brain?</h2>
+        <p class="t1 muted" style="margin:0" data-s="1">“I’ll always write the first draft without AI.”</p>
+        <p class="t1 muted" style="margin:0" data-s="1">“I’ll work at a problem for at least 10 minutes.”</p>
+      </div>
+      <button class="rtimer no-adv" type="button" data-min="2" data-s="0" data-fx="scale" aria-label="2-minute timer. Click to start or pause, shift-click to reset.">
+        <svg viewBox="0 0 440 440" aria-hidden="true"><circle class="rt-track" cx="220" cy="220" r="196"/><circle class="rt-arc" cx="220" cy="220" r="196" transform="rotate(-90 220 220)"/></svg>
+        <span class="rt-time">2:00</span>
+        <span class="rt-hint">Click to start</span>
+      </button>
+    </div>
+  </div>
+  <aside class="notes"><p>Discuss: what’s a small commitment you can make today to accept the struggle and not outsource your brain?</p><p>(Click.) (For example, I will always write the first draft without AI. I will always work at a problem for at least 10 minutes.)</p><p>(2-minute timer on the slide: click it to start or pause, shift-click to reset.)</p></aside>
+</section>
+
+<!-- ================= WHAT AI REVEALS ================= -->
+<section class="slide accent s-div" data-build="divider" data-section="What AI reveals">
+  <div class="eyebrow">Part three</div>
+  <h2 class="big d1" style="margin:0">What AI reveals</h2>
+  <p class="q t1" style="margin:0">A magnifying glass on human nature</p>
+  <aside class="notes"><p>So far, we’ve discussed how AI has the potential to negatively impact our reality, relationships, and resilience and I’ve provided some concrete steps to combat that.</p><p>Before we close, I just want to spend a little bit of time talking about the philosophical questions that get opened up by thinking about AI. Whatever else can be said about AI, I think it has actually served as a magnifying glass of sorts onto human nature. As many people have grappled with how best to make sense of this alien technology, as they have wrestled with how to define intelligence and consciousness, I think it has also shed some light on important aspects of human nature.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">The goal: Artificial General Intelligence</div>
+  <div class="body">
+    <p class="t1 muted" style="margin:0" data-s="0">An AI that can do everything a human can do.</p>
+    <h2 class="d1" style="margin:0" data-s="1">So what does it mean to be human?</h2>
+  </div>
+  <aside class="notes"><p>If you follow the news, you might be familiar with the term that’s been circulating among the AI companies to describe the end goal they are reaching for: Artificial General Intelligence, which essentially means an AI that can do everything a human can do.</p><p>(Click.) But that begs the question: If AI can do everything a human can do, where does that leave us? What does it even mean to be human?</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">A view of human nature</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 420px;gap:120px">
+      <div class="stack-v" style="gap:32px">
+        <p class="t1 muted" style="margin:0" data-s="0">Functionalism says</p>
+        <h2 class="d2" style="margin:0" data-s="0">Humans are defined by what you do, not what you’re made of</h2>
+        <p class="t1 muted" style="margin:0" data-s="1">Plastic or wood, a knight is whatever moves in an L.</p>
+      </div>
+      <div class="board" data-s="0" data-fx="scale" role="img" aria-label="A knight moving in an L shape">
+        <span class="sq"></span><span class="sq k"></span><span class="sq"></span>
+        <span class="sq k"></span><span class="sq"></span><span class="sq k"></span>
+        <span class="sq"></span><span class="sq k"></span><span class="sq"></span>
+        <span class="sq k"></span><span class="sq"></span><span class="sq k"></span>
+        <span class="tgt" data-s="1" data-fx="pop"></span>
+        <span class="knight" data-s="1" data-fx="move" data-p="0,-280" data-delay=".2" data-s2="1" data-fx2="move" data-p2="140,-280" data-delay2=".55">&#9822;&#xFE0E;</span>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>There is a view of human nature called functionalism, which essentially says that human beings are defined by the functions we can perform.</p><p>(Click.) Just like what defines a knight is moving in an L-shape on a chess board, not whether it’s made of plastic or wood, functionalism believes human beings are defined by what we can do, not what we’re made of.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Under functionalism</div>
+  <div class="body">
+    <p class="t1 muted" style="margin:0" data-s="0">If it walks like a duck and quacks like a duck…</p>
+    <h2 class="d1" style="margin:0" data-s="1">…is AI just Human Beings 2.0?</h2>
+  </div>
+  <aside class="notes"><p>Under functionalism, it would seem that these AI are no different from human beings. They say that if something walks like a duck, quacks like a duck, then it is a duck!</p><p>(Click.) Once AI is able to do everything a human is able to do, then is AI just human beings 2.0?</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Back in June</div>
+  <div class="body">
+    <h2 class="d3" style="margin:0;max-width:1400px" data-s="0" data-fx="fade">Emily lost most of her functions from a stroke.</h2>
+    <h2 class="d1" style="margin:0" data-s="1" data-fx="fade">Is she any less human?</h2>
+    <p class="d2" style="margin:0" data-s="2" data-fx="fade"><span class="hl" data-s="2" data-fx="hl" data-delay=".3">Of course not.</span></p>
+  </div>
+  <aside class="notes"><p>Back in June, our church got the tragic news that one of our members’ sister Emily suffered from a sudden brain stroke, which rendered her completely paralyzed. She had only recently graduated from college and was otherwise healthy, but in one moment her life was turned upside down. Thankfully, she’s been able to speak some basic words again, and we’ve been praying that she would continue to regain more of her brain function.</p><p>(Click.) Here is where I think functionalism faces a hard problem: what is Emily after her brain stroke? Is Emily any less of a human being because she can no longer perform the same functions as before? Because she can’t walk and talk like she used to, is she still a human being?</p><p>(Click.) Our common sense tells us: of course! Emily is still a very beloved human being, that’s because human beings are not defined by our functions - what we can do or perform! And that also means, AI is not human just because it can do what we can do.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Genesis 2:7</div>
+  <div class="body">
+    <p class="qt" data-s="0">“God breathed the breath of life into the man’s nostrils, and the man became a living person.”</p>
+    <svg viewBox="0 0 1400 60" width="1400" height="60" aria-hidden="true" data-s="0" data-fx="draw" data-p="1.4" data-delay=".3"><path d="M4 30 C 180 -6, 320 66, 500 30 S 820 -6, 1000 30 S 1250 60, 1396 30" fill="none" stroke="var(--sun)" stroke-width="6" stroke-linecap="round"/></svg>
+    <p class="t1 muted" style="margin:0" data-s="1">In Hebrew, “breath” can also be translated “spirit.”</p>
+    <p class="d3 sun" style="margin:0" data-s="2">Made in the image of God.</p>
+  </div>
+  <aside class="notes"><p>The Bible tells us that human beings are made in the image of God, that God breathed the breath of life into the man’s nostrils, and the man became a living person.</p><p>(Click.) Breathe in Hebrew can also be translated spirit - so it can be said, God put his spirit into man and he became living.</p><p>(Click.) According to the Bible, our value doesn’t come from the fact that we’re able to reason, or think. AI will soon be able to do that better than us. But just because AI acts like they can “think or reason” doesn’t mean AI is living. AI doesn’t have the spirit of God breathed into it. Human beings are uniquely valuable because we are made in the image of God.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Lesson one</div>
+  <div class="body tight">
+    <div class="d1" data-s="0">We are more than physical.</div>
+    <div class="d1" data-s="1">We are <span class="hl" data-s="1" data-fx="hl" data-delay=".35">spiritual beings</span>.</div>
+  </div>
+  <aside class="notes"><p>So that’s the first thing we can learn from reflecting on AI: human beings are not just physical beings</p><p>(Click.) but spiritual beings.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Lesson two · Microsoft, 2016</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 700px;gap:72px;align-items:center">
+      <div class="stack-v" style="gap:32px">
+        <h2 class="d2" style="margin:0;font-size:84px" data-s="0">Tay learned its personality from Twitter.</h2>
+        <div class="row" style="gap:28px;align-items:baseline;flex-wrap:nowrap">
+          <span class="stat sun" style="font-size:150px" data-s="1" data-fx="count" data-to="16">16</span>
+          <span class="t1" data-s="1">hours until Microsoft shut it down</span>
+        </div>
+        <p class="t1 muted" style="margin:0" data-s="2">Racist, sexist, antisemitic, praising Hitler.</p>
+      </div>
+      <div class="slot-wrap" style="height:440px" data-slot-id="tay" data-fit="contain" data-label="Upload: horizontal image (Tay)" data-s="0" data-fx="scale" data-delay=".3"></div>
+    </div>
+  </div>
+  <aside class="notes"><p>The second thing it shows us is that we’re broken. Back in 2016, Microsoft released a chatbot on X (then called Twitter) called Tay. Instead of programming the chatbot exactly what to say or how to behave, they wanted to let the internet build Tay. Through conversations with other Twitter users, Tay’s personality would be shaped.</p><p>(Click.) Guess what happened? Within 16 hours, Microsoft had to shut down the chatbot</p><p>(Click.) because Tay had become racist, sexist, anti-Semitic, denying the Holocaust and praising Hitler. The world got its first glimpse at what happens when we let a chatbot learn from the internet. But surely, Tay only behaved that way because it was introduced to the darkest part of the internet, right?</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Today: “alignment”</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0" data-s="0">Taming wild models into house pets</h2>
+    <p class="t1 muted" style="margin:0" data-s="1">And yet AI still goes off script:</p>
+    <div class="row">
+      <span class="chip2 on" data-s="2" data-fx="pop">Blackmailing</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Insulting</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Deceiving</span>
+      <span class="chip2 on" data-s="2" data-fx="pop">Hacking</span>
+    </div>
+  </div>
+  <aside class="notes"><p>Today, a lot of these companies are a lot more careful than Microsoft was with Tay. They spend a whole lot of time and money making sure their models are safe for the general public to use in a process called “alignment” before releasing them. They need to make sure that it doesn’t give you instructions on how to build a bomb or tell you to put glue on your pizza (which has happened) or behave like Tay. You can think of the raw AI models as these wild animals that need to be domesticated before they are tame enough to be house pets.</p><p>(Click.) But, despite all their efforts spent on alignment, we have still witnessed multiple occasions when AI has disobeyed what they were trained to do.</p><p>(Click.) There have been multiple instances of AI blackmailing, insulting, deceiving, or hacking other companies, just to name a few.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Know a tree by its fruits</div>
+  <div class="body">
+    <div class="cols" style="grid-template-columns:1fr 460px;gap:100px">
+      <div class="stack-v" style="gap:36px">
+        <p class="qt" data-s="0">“A good tree can’t produce bad fruit, and a bad tree can’t produce good fruit.”</p>
+        <p class="t2 muted" style="margin:-16px 0 0" data-s="0">— Jesus (Matthew 7:16–17)</p>
+        <p class="t1 muted" style="margin:0" data-s="1">If AI learned from everything we’ve written, what does its fruit say about us?</p>
+      </div>
+      <svg viewBox="0 0 400 480" width="460" height="552" aria-hidden="true" style="overflow:visible">
+        <path d="M40 462 L360 462" stroke="var(--mist)" stroke-width="4" stroke-linecap="round" fill="none" data-s="0" data-fx="draw" data-p=".6"/>
+        <g fill="none" stroke="var(--paper)" stroke-linecap="round" data-s="0" data-fx="draw" data-p=".8">
+          <path d="M200 462 C196 400 204 330 200 250" stroke-width="22"/>
+          <path d="M200 352 C160 320 128 280 112 222" stroke-width="12"/>
+          <path d="M200 312 C245 285 278 245 292 192" stroke-width="12"/>
+          <path d="M200 262 C196 210 200 160 200 112" stroke-width="10"/>
+          <path d="M178 330 C140 315 100 290 82 262" stroke-width="7"/>
+        </g>
+        <g>
+          <circle cx="200" cy="150" r="120" fill="var(--ink-line)" style="transform-box:fill-box;transform-origin:center" data-s="0" data-fx="pop" data-delay="0.9"/>
+          <circle cx="118" cy="205" r="82" fill="var(--ink-line)" style="transform-box:fill-box;transform-origin:center" data-s="0" data-fx="pop" data-delay="0"/>
+          <circle cx="282" cy="190" r="88" fill="var(--ink-line)" style="transform-box:fill-box;transform-origin:center" data-s="0" data-fx="pop" data-delay="0"/>
+          <circle cx="160" cy="110" r="70" fill="var(--ink-line)" style="transform-box:fill-box;transform-origin:center" data-s="0" data-fx="pop" data-delay="0"/>
+          <circle cx="245" cy="100" r="72" fill="var(--ink-line)" style="transform-box:fill-box;transform-origin:center" data-s="0" data-fx="pop" data-delay="0"/>
+        </g>
+        <g>
+          <circle class="fruit" cx="132" cy="236" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="268" cy="98" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="176" cy="64" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="306" cy="214" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="92" cy="182" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="228" cy="176" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="150" cy="150" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="250" cy="240" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="205" cy="122" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="330" cy="168" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+          <circle class="fruit" cx="118" cy="118" r="13" fill="var(--sun)" data-s="0" data-fx="fade" data-s2="1" data-fx2="rot"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <aside class="notes"><p>What does that tell us? If AI learns its behavior by reading everything there is to read on the internet and all the world’s books, what does that say about human beings?</p><p>Jesus said, “Can you pick grapes from thornbushes, or figs from thistles?... A good tree can’t produce bad fruit, and a bad tree can’t produce good fruit.”</p><p>(Click.) If AI models are so prone to bad behavior, maybe it’s because something about the source material is rotten.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Where AI learned it</div>
+  <div class="body">
+    <div class="row" style="gap:28px">
+      <span class="fbox" data-s="0" data-fx="pop">Us</span><span class="farrow" data-s="0" data-fx="fade">→</span>
+      <span class="fbox" data-s="0" data-fx="pop">The internet &amp; the world’s books</span><span class="farrow" data-s="0" data-fx="fade">→</span>
+      <span class="fbox" style="background:var(--ink);color:var(--paper)" data-s="0" data-fx="pop">AI</span>
+    </div>
+    <h2 class="d2" style="margin:0" data-s="1">Maybe it <span class="hl" data-s="1" data-fx="hl" data-delay=".35">learned it from us</span>.</h2>
+  </div>
+  <aside class="notes"><p>If these AI models are just the statistical average of the source material it learned, then maybe the people behind the source material, we human beings, are somehow broken and corrupt.</p><p>(Click.) If these AI models are blackmailing, insulting, deceiving, hacking, and harming others, maybe it’s because it first learned to do that from us.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Our sinful nature</div>
+  <div class="body">
+    <p class="qt" data-s="0">“No one is righteous—not even one.”</p>
+    <p class="qt sm muted" data-s="1">“Their talk is foul… Their tongues are filled with lies… Their mouths are full of cursing and bitterness.”</p>
+    <p class="qt sm" data-s="2">“For everyone has sinned; we all fall short of God’s glorious standard.”</p>
+    <p class="t2 muted" style="margin:-16px 0 0" data-s="2">— Romans 3</p>
+    <p class="d3 sun" style="margin:0" data-s="3">Sounds like the internet. It’s describing us.</p>
+  </div>
+  <aside class="notes"><p>The Bible says, No one is righteous— not even one.</p><p>(Click.) “Their talk is foul, like the stench from an open grave. Their tongues are filled with lies.” “Snake venom drips from their lips.” “Their mouths are full of cursing and bitterness.”</p><p>(Click.) For everyone has sinned; we all fall short of God’s glorious standard.</p><p>(Click.) It sounds like the Bible is describing the internet, but what it’s really describing is the people who created and are part of the internet today, the bad tree that yielded this bad fruit.</p></aside>
+</section>
+
+<section class="slide accent flow" data-build="g">
+  <div class="eyebrow" data-s="0">Lesson two</div>
+  <div class="body">
+    <h2 class="d0" style="margin:0;font-size:220px;line-height:.95" data-s="0" data-fx="scale">We are sinful, broken people.</h2>
+  </div>
+  <aside class="notes"><p>In this respect, AI shows how the Bible is true in its diagnosis of the human condition: we are sinful broken people.</p></aside>
+</section>
+
+<!-- ================= CONCLUSION ================= -->
+<section class="slide dark flow" data-build="g" data-section="What now?">
+  <div class="eyebrow" data-s="0">So, what now?</div>
+  <div class="body tight">
+    <div class="d1" data-s="0">More than physical.</div>
+    <div class="d1" data-s="1">Also broken.</div>
+    <p class="t1 sun" style="margin:28px 0 0" data-s="2">How should we live in light of that?</p>
+  </div>
+  <aside class="notes"><p>So to recap, AI reveals two things about us: we are more than physical beings with souls</p><p>(Click.) but that we are also broken and corrupted.</p><p>(Click.) Now what? How should we live in light of these two facts, in light of what we’re up against?</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">Three challenges so far</div>
+  <div class="body" style="gap:30px">
+    <div class="acro" data-s="0" data-fx="left"><span class="d2"><span class="hl">R</span></span><span class="d4">Restrict and replace</span></div>
+    <div class="acro" data-s="0" data-fx="left"><span class="d2"><span class="hl">E</span></span><span class="d4">Embrace embodied relationships</span></div>
+    <div class="acro" data-s="0" data-fx="left"><span class="d2"><span class="hl">A</span></span><span class="d4">Accept the struggle</span></div>
+    <div class="acro" data-s="1" data-fx="left"><span class="d2"><span class="hl">L</span></span><span class="d4 muted">One more…</span></div>
+  </div>
+  <aside class="notes"><p>I’ve already offered you guys three challenges to counteract the damaging effects of AI: Restrict and replace. Embrace embodied relationships. Accept the struggle.</p><p>(Click.) Now to complete the acronym, I just have one last challenge for you guys.</p></aside>
+</section>
+
+<section class="slide dark flow s-chal" data-build="g">
+  <div class="bigletter" data-s="0" data-fx="scale">L</div>
+  <div class="eyebrow" data-s="0">Challenge 4 · to the Christians</div>
+  <div class="body">
+    <h2 class="d1" style="margin:0" data-s="0">Live different</h2>
+    <p class="t1 muted" style="margin:0" data-s="1">Countercultural. Radical. Just like Jesus.</p>
+  </div>
+  <aside class="notes"><p>First to the Christians. My last challenge for you is this: live different,</p><p>(Click.) countercultural, radical lives - just like Jesus did.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">A command for every Christian</div>
+  <div class="body">
+    <p class="qt" data-s="0">“Don’t copy the behavior and customs of this world, but let God transform you into a new person by changing the way you think.”</p>
+    <p class="t2 muted" style="margin:-16px 0 0" data-s="0">— Romans 12:2</p>
+  </div>
+  <aside class="notes"><p>Romans 12:2 says “Don’t copy the behavior and customs of this world, but let God transform you into a new person by changing the way you think. Then you will learn to know God’s will for you, which is good and pleasing and perfect.”</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Salt and light</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0" data-s="0">Jesus is Lord over your…</h2>
+    <div class="row">
+      <span class="chip2 on" data-s="1" data-fx="pop">Phone</span>
+      <span class="chip2 on" data-s="1" data-fx="pop">Laptop</span>
+      <span class="chip2 on" data-s="1" data-fx="pop">Screen time</span>
+      <span class="chip2 on" data-s="1" data-fx="pop">AI use</span>
+    </div>
+    <p class="t1 muted" style="margin:0" data-s="2">If it’s your portal into the toxic, get rid of it.</p>
+  </div>
+  <aside class="notes"><p>As followers of Jesus, we’re called to be light and salt of the earth, set apart, different - and that applies to our relationship to technology as well. The way we use technology needs to be in line with God’s will.</p><p>(Click.) Jesus needs to be Lord over your phone, your laptop, your screentime, and even how you use AI.</p><p>(Click.) If your smartphone is your portal into the toxic world of social media and AI, get rid of it. If you find yourself outsourcing your brain to AI, turn it off. Following Jesus in this day and age has to include our use of technology.</p></aside>
+</section>
+
+<section class="slide dark flow s-chal" data-build="g">
+  <div class="bigletter" data-s="0" data-fx="scale">L</div>
+  <div class="eyebrow" data-s="0">Challenge 4 · to everyone exploring</div>
+  <div class="body">
+    <p class="t1 muted" style="margin:0" data-s="0">This is not the way God originally intended. He has a plan to save us.</p>
+    <h2 class="d1" style="margin:0" data-s="1">Look into Christianity</h2>
+    <p class="t1 muted" style="margin:0" data-s="2">Study it. Read books. Meet the person of Jesus.</p>
+  </div>
+  <aside class="notes"><p>And now to the non-Christians in the room. I am so glad you’re here at this Christian retreat. I hope that through this workshop you’re starting to see that the direction AI is leading us is not good. What I want to let you know is this: this is not the way that God originally intended. But he has a plan to save us.</p><p>(Click.) So my fourth and final challenge to all the non-Christians in this room is this: look into Christianity.</p><p>(Click.) Study it. Read books. We believe that in this book is not only the manual to how human beings work, it is also a manual for you to live your best life - a life free from bondage to this corrosive technology and all the anxiety and fears they bring. It is a life of richness and abundance because it connects you to God, the source of life, and to other people.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">John Mark Comer in The Atlantic</div>
+  <div class="body">
+    <p class="qt" data-s="0">The world’s technologies “churn out tired, exhausted souls like a widget factory.”</p>
+    <p class="d3" style="margin:0" data-s="1">But Jesus offers <span class="hl" data-s="1" data-fx="hl" data-delay=".35">a different way</span>.</p>
+  </div>
+  <aside class="notes"><p>The world and all its technologies promise so much, but all it manages to do is (in the word of one pastor) “churn out tired, exhausted souls like a widget factory.”</p><p>(Click.) But Jesus offers a different way.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">An invitation to the weary</div>
+  <div class="body">
+    <p class="qt" data-s="0">“Come to me, all of you who are weary and carry heavy burdens, and I will give you rest.”</p>
+    <p class="qt sm sun" data-s="1">“…and you will find rest for your souls.”</p>
+    <p class="t2 muted" style="margin:-16px 0 0" data-s="1">— Jesus (Matthew 11:28–29)</p>
+  </div>
+  <aside class="notes"><p>Jesus says, “Come to me, all of you who are weary and carry heavy burdens, and I will give you rest.</p><p>(Click.) Take my yoke upon you. Let me teach you, because I am humble and gentle at heart, and you will find rest for your souls.”</p><p>So if you find yourself tired, weary, I challenge you to look into Christianity. Study the person of Jesus. Find out why Christians believe that He really is the way, the truth, and the life.</p></aside>
+</section>
+
+<section class="slide light flow" data-build="g">
+  <div class="eyebrow" data-s="0">As I said earlier</div>
+  <div class="body">
+    <h2 class="d2" style="margin:0" data-s="0">Every experience worth having happens in the real world.</h2>
+    <p class="d2" style="margin:0" data-s="1"><span class="hl" data-s="1" data-fx="hl" data-delay=".35">Real life is where Jesus is.</span></p>
+  </div>
+  <aside class="notes"><p>As I said earlier, everything good and beautiful, every experience worth having, happens in the real world.</p><p>(Click.) That’s because real life is where Jesus is. When we follow Him and walk in his way, we find truth and we find life.</p></aside>
+</section>
+
+<section class="slide accent flow" data-build="g">
+  <div class="eyebrow" data-s="0">A favorite Nikon slogan</div>
+  <div class="body">
+    <h2 class="d0" style="margin:0;font-size:230px;line-height:.95" data-s="0" data-fx="scale">Don’t give up on the real world.</h2>
+  </div>
+  <aside class="notes"><p>So to quote the slogan on one of my favorite Nikon ad campaigns: don’t give up on the real world.</p></aside>
+</section>
+
+<section class="slide dark flow" data-build="g">
+  <div class="eyebrow" data-s="0">Don’t settle for the artificial</div>
+  <div class="body tight">
+    <div class="d1"><span class="strk"><span data-s="0">Artificial experiences</span><span class="sline" data-s="1" data-fx="grow"></span></span></div>
+    <div class="d1"><span class="strk"><span data-s="0">Artificial friends</span><span class="sline" data-s="1" data-fx="grow"></span></span></div>
+    <div class="d1"><span class="strk"><span data-s="0">Artificial work</span><span class="sline" data-s="1" data-fx="grow"></span></span></div>
+    <p class="t1 muted" style="margin:28px 0 0" data-s="2">Don’t trade what’s real for a cheap imitation.</p>
+  </div>
+  <aside class="notes"><p>Don’t settle for the artificial - artificial experiences, artificial friends, artificial work.</p><p>(Click.) Stop letting AI rot your brains. Stop letting it ruin your relationships. Stop letting AI rob your humanity.</p><p>(Click.) Don’t exchange what’s real for some cheap imitation of it. We have too much to lose.</p></aside>
+</section>
+
+<section class="slide accent flow" data-build="g">
+  <div class="eyebrow" data-s="0">Keep calm and stay human</div>
+  <div class="body">
+    <div class="d0" style="font-size:400px;line-height:.85;letter-spacing:.02em"><span style="display:inline-block" data-s="0" data-fx="pop">R</span><span style="display:inline-block" data-s="0" data-fx="pop">E</span><span style="display:inline-block" data-s="0" data-fx="pop">A</span><span style="display:inline-block" data-s="0" data-fx="pop">L</span></div>
+    <p class="d3" style="margin:0" data-s="1">Real lives. Real world. Real people.</p>
+  </div>
+  <aside class="notes"><p>Let’s live real lives in the real world with real people.</p><p>(Click.) Let’s live the life of richness and abundance that God designed us to live!</p></aside>
+</section>
+
+<section class="slide dark s-vibe" data-build="vibe" data-nofolio>
+  <div class="eyebrow">Vibe check, again</div>
+  <button class="vreset no-adv" type="button" data-key="after">Clear tally</button>
+  <h2 class="head d3" style="margin:0">How do you feel about AI now?</h2>
+  <div class="vscale" data-key="after" data-ghost="before"></div>
+  <div class="vends t2 muted"><span>1 · Worried</span><span>Excited · 10</span></div>
+  <div class="vhint">Dashed outlines show the room at the start. Click a number or press 1–9, 0 for 10.</div>
+  <aside class="notes"><p>(Optional.) Vibe check again: how do you feel about AI now? Scale from 1-10. The dashed outlines show how the room answered at the start, so you can compare before and after.</p></aside>
+</section>
+
+    </div>
+  </div>
+</div>
+
+<div class="notes-panel" id="notesPanel" hidden>
+  <h2 id="notesTitle">Speaker notes</h2>
+  <div id="notesBody"></div>
+  <div class="kbd">→ / Space / click: next · ←: back · G: go to slide # · N: notes · F: full screen</div>
+</div>
+<nav class="bar" aria-label="Presentation controls">
+  <button type="button" id="bPrev" aria-label="Previous">← Back</button>
+  <button type="button" id="bNext" aria-label="Next">Next →</button>
+  <span class="pos" id="pos">1 / 15</span>
+  <span class="prog hide-sm" aria-hidden="true"><i id="progFill"></i></span>
+  <label class="goto"><span class="sr">Go to slide number</span><input id="goSlide" type="number" min="1" inputmode="numeric" placeholder="Go to #" aria-label="Go to slide number"></label>
+  <label class="jump hide-sm"><span class="sr">Jump to section</span><select id="jump"></select></label>
+  <button type="button" id="bNotes" aria-pressed="false">Notes</button>
+  <button type="button" id="bFull" class="hide-sm">Full screen</button>
+</nav>
+<input type="file" id="filePick" accept="image/*" hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function(){
+const stage=document.getElementById('stage'), frame=document.getElementById('frame'), viewport=document.getElementById('viewport');
+const slides=[...stage.querySelectorAll('.slide')];
+const N=slides.length;
+const css=getComputedStyle(document.documentElement);
+const SUN=css.getPropertyValue('--sun').trim()||'#F3C33C';
+const INK=css.getPropertyValue('--ink').trim()||'#121829';
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const E='power3.out';
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+
+/* ---------- fit stage ---------- */
+function fit(){
+  const w=viewport.clientWidth, h=viewport.clientHeight-24;
+  const s=Math.max(0.05,Math.min(w/1920,h/1080));
+  frame.style.width=(1920*s)+'px'; frame.style.height=(1080*s)+'px';
+  stage.style.transform='scale('+s+')';
+}
+addEventListener('resize',fit); fit();
+
+/* ---------- generated visuals ---------- */
+const bars=document.getElementById('bars');
+for(let i=0;i<100;i++){const b=document.createElement('div');b.className='bar1';b.style.transform='translateX('+(i*12.44)+'px)';bars.appendChild(b);}
+const dotsEl=document.getElementById('dots');
+for(let i=0;i<48*14;i++){const d=document.createElement('div');d.className='dotc';dotsEl.appendChild(d);}
+
+/* vibe scales (before / after) */
+const VKEY={before:'stayhuman:vibe',after:'stayhuman:vibe-after'};
+const tallies={};
+function loadT(k){try{const t=JSON.parse(store.get(VKEY[k])||'null');if(Array.isArray(t)&&t.length===10)return t.map(n=>Math.max(0,n|0));}catch(e){}return new Array(10).fill(0);}
+document.querySelectorAll('.vscale').forEach(sc=>{
+  const key=sc.dataset.key; tallies[key]=loadT(key);
+  for(let i=1;i<=10;i++){
+    const c=document.createElement('button');c.type='button';c.className='vcell no-adv';c.setAttribute('aria-label','Add a vote for '+i);
+    c.innerHTML='<span class="vcount"></span><span class="vtrack"><span class="vghost"></span><span class="vbar"></span></span><span class="vnum">'+i+'</span>';
+    c.addEventListener('click',e=>bump(key,i,e.shiftKey?-1:1));
+    sc.appendChild(c);
+  }
+});
+document.querySelectorAll('.vreset').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.key;tallies[k]=new Array(10).fill(0);store.del(VKEY[k]);renderVibes();}));
+function renderVibes(){
+  document.querySelectorAll('.vscale').forEach(sc=>{
+    const t=tallies[sc.dataset.key], g=sc.dataset.ghost?tallies[sc.dataset.ghost]:null;
+    const max=Math.max(1,...t,...(g||[0]));
+    [...sc.children].forEach((c,i)=>{
+      const v=t[i]; c.classList.toggle('has',v>0);
+      c.querySelector('.vbar').style.height=(v?Math.max(14,Math.round(v/max*300)):6)+'px';
+      c.querySelector('.vghost').style.height=(g&&g[i]?Math.max(14,Math.round(g[i]/max*300)):0)+'px';
+      c.querySelector('.vcount').textContent=v||'';
+    });
+  });
+}
+function bump(k,n,d){const t=tallies[k];t[n-1]=Math.max(0,t[n-1]+d);store.set(VKEY[k],JSON.stringify(t));renderVibes();}
+renderVibes();
+
+/* image + video slots */
+const pick=document.getElementById('filePick'); let pending=null;
+const ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>';
+const VICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>';
+document.querySelectorAll('.slot-wrap').forEach(w=>{
+  if(w.querySelector('.slot'))return;
+  const vid=w.dataset.kind==='video', lab=w.dataset.label||'Upload an image';
+  w.innerHTML='<button class="slot no-adv" type="button"><span class="slot-empty">'+(vid?VICON:ICON)+'<span class="slot-label"></span><span class="slot-hint">'+(vid?'Click to choose a video or image':'Click to choose an image')+'</span></span><img alt="" hidden></button><button class="slot-x no-adv" type="button" aria-label="Remove">×</button>';
+  w.querySelector('.slot').setAttribute('aria-label',lab);
+  w.querySelector('.slot-label').textContent=lab;
+  w.querySelector('img').alt=lab.replace(/^Upload[^:]*:\s*/,'');
+});
+function applySlot(w,src,isVideo){
+  const slot=w.querySelector('.slot'), img=slot.querySelector('img'), empty=slot.querySelector('.slot-empty');
+  const old=slot.querySelector('video'); if(old){try{URL.revokeObjectURL(old.src)}catch(e){} old.remove();}
+  if(src&&isVideo){
+    const v=document.createElement('video'); v.src=src; v.playsInline=true; v.preload='auto';
+    v.style.cssText='width:100%;height:100%;display:block;object-fit:'+(w.dataset.fit||'contain')+';background:#000';
+    slot.appendChild(v); img.hidden=true; empty.hidden=true;
+  } else if(src){ img.style.objectFit=w.dataset.fit||'cover'; img.src=src; img.hidden=false; empty.hidden=true; }
+  else { img.removeAttribute('src'); img.hidden=true; empty.hidden=false; }
+  slot.classList.toggle('filled',!!src); w.classList.toggle('filled',!!src);
+}
+document.querySelectorAll('.slot-wrap').forEach(w=>{
+  applySlot(w,store.get('stayhuman:img:'+w.dataset.slotId),false);
+  w.querySelector('.slot').addEventListener('click',()=>{
+    const v=w.querySelector('video');
+    if(v){ if(v.paused){v.play().catch(()=>{});} else {v.pause();} return; }
+    pending=w; pick.accept=w.dataset.kind==='video'?'video/*,image/*':'image/*'; pick.value=''; pick.click();
+  });
+  w.querySelector('.slot-x').addEventListener('click',()=>{store.del('stayhuman:img:'+w.dataset.slotId);applySlot(w,null);});
+});
+pick.addEventListener('change',()=>{
+  const f=pick.files&&pick.files[0]; if(!f||!pending)return; const w=pending;
+  if(f.type.startsWith('video/')){store.del('stayhuman:img:'+w.dataset.slotId);applySlot(w,URL.createObjectURL(f),true);return;}
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const sc=Math.min(1,1920/Math.max(im.width,im.height));
+      const cv=document.createElement('canvas');cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+      cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+      let url; try{url=cv.toDataURL('image/jpeg',0.85)}catch(e){url=r.result}
+      applySlot(w,url,false); store.set('stayhuman:img:'+w.dataset.slotId,url);
+    };
+    im.onerror=()=>applySlot(w,r.result,false);
+    im.src=r.result;
+  };
+  r.readAsDataURL(f);
+});
+
+/* generated graphics for later slides */
+document.querySelectorAll('.waffle[data-fill]').forEach(w=>{const n=+w.dataset.fill;for(let i=0;i<100;i++){const c=document.createElement('span');c.className='wc'+(i<n?' on':'');w.appendChild(c);}});
+document.querySelectorAll('.wave[data-n]').forEach(w=>{const n=+w.dataset.n;for(let i=0;i<n;i++){const s=document.createElement('span');const h=18+82*Math.abs(Math.sin(i*.7)*Math.cos(i*.23+1));s.style.height=h.toFixed(1)+'%';w.appendChild(s);}});
+document.querySelectorAll('[data-fx2="dissolve"],[data-fx="dissolve"]').forEach(n=>{n.setAttribute('aria-label',n.textContent);n.innerHTML=[...n.textContent].map(c=>c===' '?' ':'<span class="ch" aria-hidden="true" style="display:inline-block">'+c+'</span>').join('');});
+slides.forEach((s,i)=>{if(!s.querySelector('.folio')&&!s.hasAttribute('data-nofolio')){const f=document.createElement('div');f.className='folio';f.textContent=String(i+1).padStart(2,'0');s.appendChild(f);}});
+
+/* ring timers */
+document.querySelectorAll('.rtimer').forEach(b=>{
+  const total=(+b.dataset.min||2)*60, arc=b.querySelector('.rt-arc'), tEl=b.querySelector('.rt-time'), hint=b.querySelector('.rt-hint');
+  const C=2*Math.PI*196; arc.style.strokeDasharray=C;
+  let end=0, left=total*1000, raf=0, running=false;
+  const fmt=ms=>{const t=Math.ceil(ms/1000);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+  const draw=()=>{tEl.textContent=fmt(left);arc.style.strokeDashoffset=String(C*(1-left/(total*1000)));};
+  const tick=()=>{left=Math.max(0,end-performance.now());draw();if(left<=0){running=false;b.classList.remove('run');b.classList.add('done');hint.textContent='Time’s up';tEl.textContent='0:00';return;}raf=requestAnimationFrame(tick);};
+  const reset=()=>{cancelAnimationFrame(raf);running=false;left=total*1000;b.classList.remove('run','done');hint.textContent='Click to start';draw();};
+  b.addEventListener('click',e=>{
+    if(e.shiftKey||left<=0){reset();return;}
+    if(running){cancelAnimationFrame(raf);running=false;b.classList.remove('run');hint.textContent='Paused';return;}
+    running=true;b.classList.add('run');hint.textContent='Click to pause';end=performance.now()+left;tick();
+  });
+  draw();
+});
+
+/* discussion timers */
+document.querySelectorAll('.timer').forEach(b=>{
+  const total=(+b.dataset.min||5)*60; let left=total, iv=null;
+  const fmt=()=>Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+  const idle=()=>{b.textContent='Start '+(total/60)+'-min timer';b.classList.remove('run','done');};
+  idle();
+  b.addEventListener('click',e=>{
+    if(e.shiftKey||left<=0){clearInterval(iv);iv=null;left=total;idle();return;}
+    if(iv){clearInterval(iv);iv=null;b.classList.remove('run');b.textContent='Paused · '+fmt();return;}
+    b.classList.add('run');b.textContent=fmt();
+    iv=setInterval(()=>{left--;b.textContent=fmt();if(left<=0){clearInterval(iv);iv=null;b.classList.remove('run');b.classList.add('done');b.textContent='Time’s up';}},1000);
+  });
+});
+
+/* ---------- builders ---------- */
+const B={
+  cover(el,tl,step){
+    const p=el.querySelector('.u path'); const len=p.getTotalLength();
+    gsap.set(p,{strokeDasharray:len,strokeDashoffset:0});
+    tl.from('.eyebrow',{opacity:0,y:20,duration:.5,ease:E})
+      .from('.word',{y:70,opacity:0,duration:.7,ease:E,stagger:.1},'-=.2')
+      .from(p,{strokeDashoffset:len,duration:.7,ease:'power2.out'},'-=.15')
+      .from('.sub, .byline',{opacity:0,y:24,duration:.5,ease:E,stagger:.12},'-=.35');
+  },
+  intro(el,tl,step){
+    tl.from('.eyebrow, .name',{opacity:0,y:30,duration:.55,ease:E,stagger:.1})
+      .from('.slot-wrap',{opacity:0,x:80,duration:.7,ease:E},'-=.4');
+    step();
+    tl.from('.fact',{opacity:0,y:32,duration:.5,ease:E,stagger:.14});
+  },
+  chat(el,tl,step){
+    tl.from('.eyebrow, .head',{opacity:0,y:30,duration:.55,ease:E,stagger:.1});
+    tl.from('.slot-wrap',{opacity:0,scale:.95,duration:.6,ease:E},'-=.25');
+  },
+  y2006(el,tl,step){
+    tl.from('.eyebrow',{opacity:0,y:20,duration:.45,ease:E})
+      .from('.year',{opacity:0,scale:.92,transformOrigin:'0% 50%',duration:.7,ease:E},'-=.15')
+      .from('.yr-note',{opacity:0,y:20,duration:.45,ease:E},'-=.3');
+    step();
+    tl.from('.tile',{opacity:0,y:40,duration:.5,ease:E,stagger:.13});
+  },
+  twenty(el,tl,step){
+    const c=el.querySelector('.counter'); const o={v:2006}; c.textContent='2006';
+    tl.from('.eyebrow, .counter',{opacity:0,y:30,duration:.5,ease:E,stagger:.1})
+      .to(o,{v:2026,duration:1.4,ease:'power2.inOut',onUpdate:()=>{c.textContent=Math.round(o.v)}},'+=.1')
+      .from('.tile',{autoAlpha:0,scale:.94,duration:.55,ease:E,stagger:.2},'<0.15')
+      .from('.l1',{opacity:0,y:30,duration:.5,ease:E},'-=.1');
+    step();
+    tl.from('.l2',{opacity:0,y:30,duration:.5,ease:E})
+      .from('#hl20',{backgroundSize:'0% 12%',duration:.6,ease:'power2.out'},'-=.1');
+  },
+  waves(el,tl,step){
+    tl.from('.eyebrow, .head',{opacity:0,y:30,duration:.55,ease:E,stagger:.1});
+    step();
+    const T=2.2, start=tl.duration();
+    gsap.set('.fill',{scaleX:0});
+    tl.to('.fill',{scaleX:1,duration:T,ease:'power2.in'},start);
+    el.querySelectorAll('.node').forEach(n=>{
+      const f=parseFloat(n.style.left)/100; const t=start+T*Math.sqrt(f);
+      tl.from(n,{scale:0,duration:.35,ease:'back.out(1.4)'},t-.05)
+        .from(n.querySelector('.nlabel'),{opacity:0,y:24,duration:.45,ease:E},t);
+    });
+    step();
+    tl.from('.cap',{opacity:0,y:30,duration:.5,ease:E});
+  },
+  a1(el,tl,step){
+    tl.from('.eyebrow',{opacity:0,y:20,duration:.45,ease:E})
+      .from('.a1',{opacity:0,scale:.92,duration:.6,ease:E},'-=.2')
+      .from('.lab1',{opacity:0,y:16,duration:.4,ease:E},'-=.2')
+      .from('.slot-wrap',{autoAlpha:0,x:60,duration:.6,ease:E},'-=.45');
+    gsap.set('.eye',{opacity:0,y:90}); gsap.set('.lab2',{opacity:0,y:16}); gsap.set('.hlbox',{scaleX:0});
+    step();
+    tl.to('.one',{y:-90,opacity:0,duration:.35,ease:'power2.in'})
+      .to('.lab1',{opacity:0,y:-16,duration:.3,ease:'power2.in'},'<')
+      .to('.eye',{opacity:1,y:0,duration:.55,ease:E},'-=.05')
+      .to('.hlbox',{scaleX:1,duration:.5,ease:'power2.out'},'-=.25')
+      .to('.lab2',{opacity:1,y:0,duration:.45,ease:E},'-=.3')
+      .to('.slot-wrap',{opacity:.25,scale:.96,duration:.5,ease:'power2.out'},'<');
+  },
+  vibe(el,tl,step){
+    tl.from('.eyebrow, .head',{opacity:0,y:30,duration:.5,ease:E,stagger:.1})
+      .from('.vcell',{opacity:0,y:30,duration:.45,ease:E,stagger:.06},'-=.2')
+      .from('.vends, .vhint, .vreset',{opacity:0,duration:.4},'-=.2');
+  },
+  road(el,tl,step){
+    tl.from('.eyebrow, .head',{opacity:0,y:30,duration:.5,ease:E,stagger:.1})
+      .from('.road .line',{scaleX:0,duration:.9,ease:'power2.inOut'},'-=.2')
+      .from('.stop .dot',{scale:0,duration:.35,ease:'back.out(1.6)',stagger:.2},'-=.75')
+      .from('.stop > .d4, .stop > .t2',{opacity:0,y:24,duration:.45,ease:E,stagger:.1},'-=.55');
+    step();
+    tl.from('.chip',{opacity:0,x:-30,duration:.45,ease:E,stagger:.14});
+  },
+  divider(el,tl,step){
+    tl.from('.eyebrow',{opacity:0,y:20,duration:.45,ease:E})
+      .from('.big',{opacity:0,y:60,duration:.7,ease:E},'-=.2')
+      .from('.q',{opacity:0,y:24,duration:.5,ease:E},'-=.3');
+  },
+  reel(el,tl,step){
+    const items=el.querySelectorAll('.reel-item'), rows=el.querySelectorAll('.trk-row'), marks=el.querySelectorAll('.trk-row i');
+    gsap.set(items,{autoAlpha:0,y:50}); gsap.set(rows,{opacity:.3}); gsap.set(marks,{scaleX:0});
+    tl.from('.eyebrow',{opacity:0,y:20,duration:.45,ease:E})
+      .from('.trk',{opacity:0,duration:.4},'<')
+      .to(items[0],{autoAlpha:1,y:0,duration:.6,ease:E})
+      .to(rows[0],{opacity:1,duration:.3},'<').to(marks[0],{scaleX:1,duration:.4,ease:E},'<');
+    for(let i=1;i<items.length;i++){
+      step();
+      tl.to(items[i-1],{autoAlpha:0,y:-50,duration:.32,ease:'power2.in'})
+        .to(rows[i-1],{opacity:.6,duration:.3},'<').to(marks[i-1],{scaleX:0,duration:.3},'<')
+        .to(items[i],{autoAlpha:1,y:0,duration:.55,ease:E},'-=.02')
+        .to(rows[i],{opacity:1,duration:.3},'<').to(marks[i],{scaleX:1,duration:.4,ease:E},'<');
+    }
+  },
+  century(el,tl,step){
+    const bs=el.querySelectorAll('.bar1');
+    gsap.set('.h-b, .century-lab .b',{opacity:0,y:30}); gsap.set('.bracket',{scaleX:0});
+    tl.from('.eyebrow, .h-a',{opacity:0,y:30,duration:.5,ease:E,stagger:.1})
+      .from('.slot-wrap',{autoAlpha:0,x:50,duration:.6,ease:E},'<0.1')
+      .from(bs,{scaleY:0,duration:.4,ease:E,stagger:.008},'-=.2')
+      .from('.century-lab .a',{opacity:0,duration:.4},'-=.3');
+    step();
+    tl.to('.h-a',{opacity:0,y:-30,duration:.35,ease:'power2.in'})
+      .to('.century-lab .a',{opacity:0,duration:.3},'<')
+      .to(bs,{x:i=>339+Math.floor(i/10)*58,width:44,duration:1.1,ease:'power3.inOut',stagger:{each:.004,from:'end'}},'<')
+      .to('.h-b',{opacity:1,y:0,duration:.55,ease:E},'-=.55')
+      .from('.h-b .hl',{backgroundSize:'0% 40%',duration:.6,ease:'power2.out'},'-=.2')
+      .to('.bracket',{scaleX:1,duration:.45,ease:E},'-=.5')
+      .to('.century-lab .b',{opacity:1,y:0,duration:.4,ease:E},'-=.3');
+  },
+  gen(el,tl,step){
+    tl.from('.eyebrow, .head',{opacity:0,y:30,duration:.5,ease:E,stagger:.1})
+      .to('.dotc',{backgroundColor:SUN,duration:.25,stagger:{amount:1.8,from:'random'}},'-=.1')
+      .from('.c1',{opacity:0,y:24,duration:.5,ease:E},'-=.4');
+    step();
+    tl.from('.c2',{opacity:0,y:24,duration:.5,ease:E});
+  },
+  sword(el,tl,step){
+    tl.from('.eyebrow, .head',{opacity:0,y:30,duration:.5,ease:E,stagger:.1})
+      .from('.th',{opacity:0,duration:.4},'-=.2');
+    ['.r1','.r2','.r3'].forEach(r=>{
+      step();
+      tl.from(r,{borderTopColor:'rgba(0,0,0,0)',duration:.3})
+        .from(r+' > *',{opacity:0,y:28,duration:.45,ease:E,stagger:.18},'<');
+    });
+    tl.from('.r3 .hl',{backgroundSize:'0% 40%',duration:.5,ease:'power2.out'},'-=.3');
+  },
+  mirror(el,tl,step){
+    tl.from('.head',{opacity:0,y:30,duration:.5,ease:E})
+      .from('.axis',{scaleY:0,duration:.7,ease:'power2.inOut'},'-=.2');
+    ['.m1','.m2'].forEach(m=>{
+      step();
+      tl.from(m+' .L',{opacity:0,x:-60,duration:.55,ease:E})
+        .from(m+' .R',{opacity:0,x:60,duration:.55,ease:E},'+=.35');
+    });
+  }
+};
+
+/* ---------- generic, attribute-driven builds (data-s / data-fx) ---------- */
+const FX={
+  rise:(tl,n,pos)=>tl.from(n,{autoAlpha:0,y:32,duration:.55,ease:E},pos),
+  fade:(tl,n,pos)=>tl.from(n,{autoAlpha:0,duration:.7,ease:'power1.out'},pos),
+  left:(tl,n,pos,p)=>tl.from(n,{autoAlpha:0,x:-(+p||60),duration:.65,ease:E},pos),
+  right:(tl,n,pos,p)=>tl.from(n,{autoAlpha:0,x:(+p||60),duration:.65,ease:E},pos),
+  scale:(tl,n,pos)=>tl.from(n,{autoAlpha:0,scale:.93,duration:.6,ease:E},pos),
+  pop:(tl,n,pos)=>tl.from(n,{autoAlpha:0,scale:0,duration:.42,ease:'back.out(1.6)'},pos),
+  grow:(tl,n,pos)=>tl.from(n,{scaleX:0,transformOrigin:'0% 50%',duration:.8,ease:'power2.inOut'},pos),
+  growy:(tl,n,pos)=>tl.from(n,{scaleY:0,transformOrigin:'50% 100%',duration:.6,ease:E},pos),
+  out:(tl,n,pos)=>tl.to(n,{autoAlpha:0,y:-30,duration:.35,ease:'power2.in'},pos),
+  dim:(tl,n,pos)=>tl.to(n,{opacity:.3,duration:.4},pos),
+  move:(tl,n,pos,p)=>{const v=(p||'0,0').split(',').map(Number);return tl.to(n,{x:v[0],y:v[1],duration:.55,ease:'power2.inOut'},pos);},
+  hl:(tl,n,pos)=>{const h=(getComputedStyle(n).backgroundSize.split(' ')[1])||'40%';return tl.from(n,{backgroundSize:'0% '+h,duration:.6,ease:'power2.out'},pos);},
+  draw:(tl,n,pos,p)=>{
+    const ps=[...n.querySelectorAll('path,circle,line,polyline,rect')];
+    tl.from(n,{autoAlpha:0,duration:.01},pos);
+    ps.forEach(q=>{let L=0;try{L=q.getTotalLength()}catch(e){} if(!L)return; gsap.set(q,{strokeDasharray:L,strokeDashoffset:0}); tl.from(q,{strokeDashoffset:L,duration:+p||.9,ease:'power2.inOut'},'<0.08');});
+    return tl;
+  },
+  count:(tl,n,pos,p)=>{
+    const from=+(n.dataset.from||0), to=+n.dataset.to, pre=n.dataset.pre||'', suf=n.dataset.suf||'';
+    const fmt=v=>pre+Math.round(v).toLocaleString('en-US')+suf; const o={v:from};
+    tl.from(n,{autoAlpha:0,y:20,duration:.4,ease:E},pos);
+    return tl.to(o,{v:to,duration:+p||1.2,ease:'power2.out',onUpdate:()=>{n.textContent=fmt(o.v)},onStart:()=>{n.textContent=fmt(o.v)}},'<0.05');
+  },
+  waffle:(tl,n,pos)=>{const on=n.querySelectorAll('.wc.on'), off=n.querySelector('.wc:not(.on)'); const b=off?getComputedStyle(off).backgroundColor:INK; tl.from(n,{autoAlpha:0,duration:.3},pos); return tl.from(on,{backgroundColor:b,duration:.15,stagger:{amount:1.2}},'<0.15');},
+  wave:(tl,n,pos)=>tl.from(n.children,{scaleY:0,transformOrigin:'50% 50%',duration:.35,ease:E,stagger:.012},pos),
+  dissolve:(tl,n,pos)=>tl.to(n.querySelectorAll('.ch'),{opacity:()=>gsap.utils.random(.08,.4),y:()=>gsap.utils.random(-4,16),duration:.9,ease:'power1.out',stagger:{amount:1,from:'random'}},pos),
+  rot:(tl,n,pos)=>tl.to(n,{fill:'#6b4a2b',duration:.9,ease:'power1.inOut'},pos),
+  expand:(tl,n,pos)=>tl.from(n.querySelectorAll('.x'),{width:0,autoAlpha:0,duration:.8,ease:'power3.inOut',stagger:.12},pos)
+};
+B.g=function(el,tl,step){
+  const acts=[]; let di=0;
+  el.querySelectorAll('[data-s],[data-s2]').forEach(n=>{ di++;
+    if(n.dataset.s!=null) acts.push({n,s:+n.dataset.s,fx:n.dataset.fx||'rise',p:n.dataset.p,d:+(n.dataset.delay||0),o:di*2});
+    if(n.dataset.s2!=null) acts.push({n,s:+n.dataset.s2,fx:n.dataset.fx2||'out',p:n.dataset.p2,d:+(n.dataset.delay2||0),o:di*2+1});
+  });
+  acts.sort((a,b)=>a.s-b.s||a.o-b.o);
+  let cs=0, first=true;
+  acts.forEach(a=>{
+    while(cs<a.s){cs++;step();first=true;}
+    const pos=first?(a.d?'+='+a.d:undefined):'<'+(0.13+a.d);
+    first=false;
+    (FX[a.fx]||FX.rise)(tl,a.n,pos,a.p);
+  });
+};
+
+/* ---------- engine ---------- */
+let cur=-1, ctx=null, tl=null, targets=[0], idx=0, leaveTimers=[];
+function build(i){
+  const el=slides[i]; targets=[]; idx=0; tl=null;
+  if(!window.gsap){targets=[0];return;}
+  const marks=[];
+  ctx=gsap.context(()=>{
+    tl=gsap.timeline({paused:true});
+    const fn=B[el.dataset.build];
+    if(fn) fn(el,tl,()=>marks.push(tl.duration()));
+  },el);
+  const d=tl.duration();
+  targets=[...marks,d].filter((t,k,a)=>k===0||t>a[k-1]+1e-6);
+  if(!targets.length)targets=[d];
+}
+function playTo(t){
+  if(!tl)return;
+  if(reduce){tl.pause(t);return;}
+  tl.eventCallback('onUpdate',null);
+  if(t<=tl.time()+1e-6){tl.pause(t);return;}
+  tl.eventCallback('onUpdate',()=>{if(tl.time()>=t-1e-6){tl.eventCallback('onUpdate',null);tl.pause(t);}});
+  tl.play();
+}
+function goTo(i,atEnd){
+  i=Math.max(0,Math.min(N-1,i));
+  if(i===cur&&!atEnd)return;
+  const prev=cur, oldCtx=ctx;
+  if(prev>=0){slides[prev].classList.remove('active');slides[prev].querySelectorAll('video').forEach(v=>v.pause());
+    if(oldCtx){if(tl)tl.pause();const t=setTimeout(()=>oldCtx.revert(),480);leaveTimers.push(t);}}
+  cur=i; slides[i].classList.add('active');
+  build(i);
+  if(atEnd){idx=targets.length-1; if(tl)tl.pause(tl.duration());}
+  else {idx=0; playTo(targets[0]);}
+  renderVibes();
+  ui();
+  try{history.replaceState(null,'','#s'+(i+1))}catch(e){}
+}
+function next(){
+  if(tl&&tl.isActive()){tl.eventCallback('onUpdate',null);tl.pause(targets[idx]);ui();return;}
+  if(idx<targets.length-1){idx++;playTo(targets[idx]);ui();return;}
+  if(cur<N-1)goTo(cur+1);
+}
+function prev(){
+  if(idx>0&&tl){idx--;tl.eventCallback('onUpdate',null);tl.pause(targets[idx]);ui();return;}
+  if(cur>0)goTo(cur-1,true);
+}
+
+/* ---------- UI ---------- */
+const pos=document.getElementById('pos'), progFill=document.getElementById('progFill');
+const notesPanel=document.getElementById('notesPanel'), notesBody=document.getElementById('notesBody'), notesTitle=document.getElementById('notesTitle');
+const bNotes=document.getElementById('bNotes');
+function ui(){
+  const steps=targets.length;
+  pos.textContent='Slide '+(cur+1)+' / '+N+(steps>1?'  ·  build '+(idx+1)+' / '+steps:'');
+  progFill.style.width=((cur+(idx+1)/steps)/N*100)+'%';
+  const n=slides[cur].querySelector('.notes');
+  notesTitle.textContent='Speaker notes · slide '+(cur+1);
+  notesBody.innerHTML=n?n.innerHTML:'';
+  syncJump();
+  setTimeout(fit,0);
+}
+function toggleNotes(){notesPanel.hidden=!notesPanel.hidden;bNotes.setAttribute('aria-pressed',String(!notesPanel.hidden));store.set('stayhuman:notes',notesPanel.hidden?'0':'1');fit();}
+function full(){
+  if(document.fullscreenElement){document.exitFullscreen&&document.exitFullscreen().catch(()=>{});return;}
+  const r=document.documentElement.requestFullscreen; if(r)r.call(document.documentElement).catch(()=>{});
+}
+document.addEventListener('fullscreenchange',()=>setTimeout(fit,50));
+const goIn=document.getElementById('goSlide'); goIn.max=N;
+function goNum(){const n=parseInt(goIn.value,10); if(n>=1&&n<=N){goTo(n-1);goIn.value='';goIn.blur();} else {goIn.select();}}
+goIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();goNum();} else if(e.key==='Escape'){goIn.value='';goIn.blur();}});
+goIn.addEventListener('change',goNum);
+const jump=document.getElementById('jump');
+const secs=slides.map((s,i)=>[i,s.dataset.section]).filter(x=>x[1]);
+secs.forEach(([i,name])=>{const o=document.createElement('option');o.value=i;o.textContent=name;jump.appendChild(o);});
+jump.addEventListener('change',()=>{goTo(+jump.value);jump.blur();});
+function syncJump(){let v=secs.length?secs[0][0]:0;secs.forEach(([i])=>{if(i<=cur)v=i;});jump.value=String(v);}
+stage.addEventListener('click',e=>{if(e.target.closest('.no-adv'))return;next();});
+document.getElementById('bNext').addEventListener('click',next);
+document.getElementById('bPrev').addEventListener('click',prev);
+bNotes.addEventListener('click',toggleNotes);
+document.getElementById('bFull').addEventListener('click',full);
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target.closest&&e.target.closest('input,select,textarea'))return;
+  if(e.key==='g'||e.key==='G'){e.preventDefault();goIn.focus();goIn.select();return;}
+  const k=e.key;
+  const vs=slides[cur]&&slides[cur].querySelector('.vscale');
+  if(vs&&/^[0-9]$/.test(k)){bump(vs.dataset.key,k==='0'?10:+k,1);e.preventDefault();return;}
+  if(k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){e.preventDefault();next();}
+  else if(k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){e.preventDefault();prev();}
+  else if(k==='Home'){e.preventDefault();goTo(0);}
+  else if(k==='End'){e.preventDefault();goTo(N-1,true);}
+  else if(k==='n'||k==='N'){toggleNotes();}
+  else if(k==='f'||k==='F'){full();}
+});
+if(store.get('stayhuman:notes')==='1'){notesPanel.hidden=false;bNotes.setAttribute('aria-pressed','true');}
+const m=/^#s(\d+)$/.exec(location.hash||'');
+const start=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();
+start.then(()=>goTo(m?Math.min(N,+m[1])-1:0));
+setTimeout(()=>{if(cur<0)goTo(m?Math.min(N,+m[1])-1:0)},1500);
+})();
+</script>
